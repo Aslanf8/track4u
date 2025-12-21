@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useRef, useCallback, useEffect } from "react";
+import Image from "next/image";
 import {
   Dialog,
   DialogContent,
@@ -515,11 +516,13 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         {step === "analyzing" && (
           <div className="py-12 flex flex-col items-center gap-4">
             {imageData && (
-              <div className="w-32 h-32 rounded-lg overflow-hidden">
-                <img
+              <div className="relative w-32 h-32 rounded-lg overflow-hidden">
+                <Image
                   src={imageData}
                   alt="Food"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}
@@ -627,11 +630,13 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         {step === "review" && editedResult && (
           <div className="space-y-4">
             {imageData && (
-              <div className="aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <img
+              <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+                <Image
                   src={imageData}
                   alt="Food"
-                  className="w-full h-full object-cover"
+                  fill
+                  className="object-cover"
+                  unoptimized
                 />
               </div>
             )}

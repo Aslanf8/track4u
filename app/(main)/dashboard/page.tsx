@@ -43,7 +43,7 @@ export default function DashboardPage() {
     const goalsData = await goalsRes.json();
 
     setEntries(entriesData);
-    
+
     // Check if user has goals set
     if (!goalsData || (!goalsData.dailyCalories && !goalsData.dailyProtein)) {
       setShowOnboarding(true);
@@ -51,7 +51,7 @@ export default function DashboardPage() {
     } else {
       setGoals(goalsData);
     }
-    
+
     setIsLoading(false);
   }, []);
 
@@ -115,10 +115,15 @@ export default function DashboardPage() {
 
   return (
     <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Dashboard</h1>
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        Dashboard
+      </h1>
 
       <DailyProgress
-        calories={{ current: totals.calories, goal: goals?.dailyCalories || 2000 }}
+        calories={{
+          current: totals.calories,
+          goal: goals?.dailyCalories || 2000,
+        }}
         protein={{ current: totals.protein, goal: goals?.dailyProtein || 50 }}
         carbs={{ current: totals.carbs, goal: goals?.dailyCarbs || 250 }}
         fat={{ current: totals.fat, goal: goals?.dailyFat || 65 }}
@@ -131,10 +136,21 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">Today&apos;s Meals</h2>
+        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+          Today&apos;s Meals
+        </h2>
         {entries.length === 0 ? (
           <div className="text-center py-12 text-zinc-500">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-12 h-12 mx-auto mb-4 opacity-50">
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="w-12 h-12 mx-auto mb-4 opacity-50"
+            >
               <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
               <path d="M8.5 8.5v.01" />
               <path d="M16 15.5v.01" />
@@ -143,12 +159,18 @@ export default function DashboardPage() {
               <path d="M7 14v.01" />
             </svg>
             <p>No meals logged yet today</p>
-            <p className="text-sm mt-1">Tap the camera button to scan your first meal!</p>
+            <p className="text-sm mt-1">
+              Tap the camera button to scan your first meal!
+            </p>
           </div>
         ) : (
           <div className="space-y-3">
             {entries.map((entry) => (
-              <FoodEntryCard key={entry.id} entry={entry} onDelete={handleDelete} />
+              <FoodEntryCard
+                key={entry.id}
+                entry={entry}
+                onDelete={handleDelete}
+              />
             ))}
           </div>
         )}
