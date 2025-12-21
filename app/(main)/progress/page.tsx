@@ -1,0 +1,304 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Skeleton } from "@/components/ui/skeleton";
+import { FoodScanner } from "@/components/food/FoodScanner";
+import { FloatingCameraButton } from "@/components/layout/FloatingCameraButton";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+} from "recharts";
+import { format, subDays, startOfDay, endOfDay } from "date-fns";
+import type { FoodEntry } from "@/lib/db/schema";
+
+export default function ProgressPage() {
+  const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [scannerOpen, setScannerOpen] = useState(false);
+
+  const loadEntries = async () => {
+    const start = subDays(new Date(), 30).toISOString();
+    const response = await fetch(`/api/food?startDate=${start}`);
+    const data = await response.json();
+    setEntries(data);
+    setIsLoading(false);
+  };
+
+  // eslint-disable-next-line react-hooks/set-state-in-effect
+  useEffect(() => { loadEntries(); }, []);
+
+  const handleSave = async (data: {
+    name: string;
+    calories: number;
+    protein: number;
+    carbs: number;
+    fat: number;
+    fiber: number;
+    description: string;
+    imageUrl?: string;
+  }) => {
+    const response = await fetch("/api/food", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      throw new Error("Failed to save entry");
+    }
+
+    loadEntries();
+  };
+
+  // Aggregate data by day for the last 7 days
+  const last7Days = Array.from({ length: 7 }, (_, i) => {
+    const date = subDays(new Date(), 6 - i);
+    const dayStart = startOfDay(date);
+    const dayEnd = endOfDay(date);
+
+    const dayEntries = entries.filter((e) => {
+      const entryDate = new Date(e.consumedAt);
+      return entryDate >= dayStart && entryDate <= dayEnd;
+    });
+
+    const totals = dayEntries.reduce(
+      (acc, entry) => ({
+        calories: acc.calories + entry.calories,
+        protein: acc.protein + entry.protein,
+        carbs: acc.carbs + entry.carbs,
+        fat: acc.fat + entry.fat,
+      }),
+      { calories: 0, protein: 0, carbs: 0, fat: 0 }
+    );
+
+    return {
+      date: format(date, "EEE"),
+      ...totals,
+    };
+  });
+
+  // Calculate macro distribution for pie chart
+  const totalMacros = entries.reduce(
+    (acc, entry) => ({
+      protein: acc.protein + entry.protein,
+      carbs: acc.carbs + entry.carbs,
+      fat: acc.fat + entry.fat,
+    }),
+    { protein: 0, carbs: 0, fat: 0 }
+  );
+
+  const pieData = [
+    { name: "Protein", value: totalMacros.protein, color: "#22c55e" },
+    { name: "Carbs", value: totalMacros.carbs, color: "#3b82f6" },
+    { name: "Fat", value: totalMacros.fat, color: "#a855f7" },
+  ];
+
+  // Calculate averages
+  const avgCalories = Math.round(
+    last7Days.reduce((sum, day) => sum + day.calories, 0) / 7
+  );
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto space-y-6">
+        <Skeleton className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800" />
+        <Skeleton className="h-80 w-full bg-zinc-200 dark:bg-zinc-800" />
+        <div className="grid grid-cols-2 gap-4">
+          <Skeleton className="h-64 bg-zinc-200 dark:bg-zinc-800" />
+          <Skeleton className="h-64 bg-zinc-200 dark:bg-zinc-800" />
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto space-y-6">
+      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Progress</h1>
+
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500">Avg Daily Calories</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{avgCalories}</p>
+        </Card>
+        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500">Total Entries</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{entries.length}</p>
+        </Card>
+        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500">Days Logged</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            {new Set(entries.map((e) => format(new Date(e.consumedAt), "yyyy-MM-dd"))).size}
+          </p>
+        </Card>
+        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-sm text-zinc-600 dark:text-zinc-500">This Week</p>
+          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+            {last7Days.reduce((sum, d) => sum + d.calories, 0)} cal
+          </p>
+        </Card>
+      </div>
+
+      <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+        <CardHeader>
+          <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Calorie Trend (Last 7 Days)</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-64">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={last7Days}>
+                <XAxis
+                  dataKey="date"
+                  stroke="#71717a"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                />
+                <YAxis
+                  stroke="#71717a"
+                  fontSize={12}
+                  tickLine={false}
+                  axisLine={false}
+                  tickFormatter={(value) => `${value}`}
+                />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: "var(--tooltip-bg, #18181b)",
+                    border: "1px solid var(--tooltip-border, #27272a)",
+                    borderRadius: "8px",
+                  }}
+                  labelStyle={{ color: "var(--tooltip-label, #fafafa)" }}
+                  itemStyle={{ color: "#f59e0b" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="calories"
+                  stroke="#f59e0b"
+                  strokeWidth={2}
+                  dot={{ fill: "#f59e0b", strokeWidth: 0 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
+        </CardContent>
+      </Card>
+
+      <div className="grid md:grid-cols-2 gap-4">
+        <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <CardHeader>
+            <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Macro Distribution</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="h-48">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={pieData}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    paddingAngle={2}
+                    dataKey="value"
+                  >
+                    {pieData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip
+                    contentStyle={{
+                      backgroundColor: "var(--tooltip-bg, #18181b)",
+                      border: "1px solid var(--tooltip-border, #27272a)",
+                      borderRadius: "8px",
+                    }}
+                    formatter={(value) => [`${Math.round(value as number)}g`, ""]}
+                  />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+            <div className="flex justify-center gap-6 mt-4">
+              {pieData.map((item) => (
+                <div key={item.name} className="flex items-center gap-2">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: item.color }}
+                  />
+                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{item.name}</span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <CardHeader>
+            <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Weekly Macros</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="protein" className="w-full">
+              <TabsList className="w-full bg-zinc-100 dark:bg-zinc-800/50">
+                <TabsTrigger value="protein" className="flex-1 data-[state=active]:bg-green-500/20 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400">Protein</TabsTrigger>
+                <TabsTrigger value="carbs" className="flex-1 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">Carbs</TabsTrigger>
+                <TabsTrigger value="fat" className="flex-1 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400">Fat</TabsTrigger>
+              </TabsList>
+              {["protein", "carbs", "fat"].map((macro) => (
+                <TabsContent key={macro} value={macro} className="h-40 mt-4">
+                  <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={last7Days}>
+                      <XAxis
+                        dataKey="date"
+                        stroke="#71717a"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <YAxis
+                        stroke="#71717a"
+                        fontSize={12}
+                        tickLine={false}
+                        axisLine={false}
+                      />
+                      <Tooltip
+                        contentStyle={{
+                          backgroundColor: "var(--tooltip-bg, #18181b)",
+                          border: "1px solid var(--tooltip-border, #27272a)",
+                          borderRadius: "8px",
+                        }}
+                        formatter={(value) => [`${Math.round(value as number)}g`, macro]}
+                      />
+                      <Line
+                        type="monotone"
+                        dataKey={macro}
+                        stroke={
+                          macro === "protein" ? "#22c55e" :
+                          macro === "carbs" ? "#3b82f6" : "#a855f7"
+                        }
+                        strokeWidth={2}
+                        dot={false}
+                      />
+                    </LineChart>
+                  </ResponsiveContainer>
+                </TabsContent>
+              ))}
+            </Tabs>
+          </CardContent>
+        </Card>
+      </div>
+
+      <FloatingCameraButton onClick={() => setScannerOpen(true)} />
+      <FoodScanner
+        open={scannerOpen}
+        onOpenChange={setScannerOpen}
+        onSave={handleSave}
+      />
+    </div>
+  );
+}

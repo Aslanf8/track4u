@@ -1,36 +1,75 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Track4U
+
+An open source calorie tracking app powered by AI. You bring your own OpenAI API key.
+
+## Why I Built This
+
+Tracking food is tedious. Searching databases, measuring portions, logging every ingredient—it kills consistency. Most people give up because it takes too long.
+
+I wanted something different: **snap a photo and move on**. That's it.
+
+The goal isn't 100% accuracy. It's 70-80% accuracy with minimal friction. A rough estimate you actually log beats a perfect entry you skip. Consistency > precision.
+
+And no subscriptions. No ads. No monthly fees. You use your own OpenAI API key and pay only for what you use (usually pennies per scan).
+
+## Features
+
+- **AI Food Scanning** - Photo → macros in seconds
+- **Goal Setting** - AI-guided setup for your nutrition targets
+- **Progress Tracking** - Simple charts, no bloat
+- **History** - Search past meals
+- **Dark/Light Mode**
+
+## Tech Stack
+
+- Next.js 16 (App Router)
+- TypeScript
+- Tailwind CSS + shadcn/ui
+- Drizzle ORM + Turso (SQLite)
+- NextAuth.js
+- OpenAI API (GPT-4o Vision)
 
 ## Getting Started
 
-First, run the development server:
+1. Clone the repo
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Copy `.env.example` to `.env.local` and fill in:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+   - `AUTH_SECRET` - Generate with `npx auth secret`
+   - `DATABASE_URL` - Your Turso database URL
+   - `DATABASE_AUTH_TOKEN` - Your Turso auth token
+   - `ENCRYPTION_KEY` - 32-byte hex key for API key encryption
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+4. Push the database schema:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+   ```bash
+   npm run db:push
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+5. Run the dev server:
 
-## Learn More
+   ```bash
+   npm run dev
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+6. Open [http://localhost:3000](http://localhost:3000)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## How It Works
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Add your OpenAI API key in settings. It's encrypted and stored securely. When you scan food, the image goes to GPT-4o Vision which returns the nutritional breakdown.
 
-## Deploy on Vercel
+**Cost**: ~$0.01-0.03 per scan depending on image size. No markup. No middleman.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Philosophy
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Speed over perfection
+- Logging something beats logging nothing
+- Your API key, your usage costs
+- No subscriptions, ever
+
+## License
+
+MIT
