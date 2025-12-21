@@ -3,6 +3,7 @@ import { auth } from "@/lib/auth";
 import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
+import { GlobalScanner } from "@/components/layout/GlobalScanner";
 import { SessionProvider } from "next-auth/react";
 
 // Type workaround for React 19 compatibility
@@ -33,6 +34,7 @@ export default async function MainLayout({
           </main>
         </div>
         <MobileNav />
+        <GlobalScanner />
       </div>
     </Provider>
   );

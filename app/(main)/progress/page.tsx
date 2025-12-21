@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FoodScanner } from "@/components/food/FoodScanner";
-import { FloatingCameraButton } from "@/components/layout/FloatingCameraButton";
 import {
   LineChart,
   Line,
@@ -23,7 +21,6 @@ import type { FoodEntry } from "@/lib/db/schema";
 export default function ProgressPage() {
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [scannerOpen, setScannerOpen] = useState(false);
 
   const loadEntries = async () => {
     const start = subDays(new Date(), 30).toISOString();
@@ -35,29 +32,6 @@ export default function ProgressPage() {
 
   // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { loadEntries(); }, []);
-
-  const handleSave = async (data: {
-    name: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-    description: string;
-    imageUrl?: string;
-  }) => {
-    const response = await fetch("/api/food", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to save entry");
-    }
-
-    loadEntries();
-  };
 
   // Aggregate data by day for the last 7 days
   const last7Days = Array.from({ length: 7 }, (_, i) => {
@@ -292,13 +266,6 @@ export default function ProgressPage() {
           </CardContent>
         </Card>
       </div>
-
-      <FloatingCameraButton onClick={() => setScannerOpen(true)} />
-      <FoodScanner
-        open={scannerOpen}
-        onOpenChange={setScannerOpen}
-        onSave={handleSave}
-      />
     </div>
   );
 }

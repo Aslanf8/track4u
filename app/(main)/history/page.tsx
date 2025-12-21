@@ -4,8 +4,6 @@ import { useState, useEffect } from "react";
 import { FoodEntryCard } from "@/components/food/FoodEntryCard";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
-import { FoodScanner } from "@/components/food/FoodScanner";
-import { FloatingCameraButton } from "@/components/layout/FloatingCameraButton";
 import { format, parseISO, isToday, isYesterday, startOfDay } from "date-fns";
 import type { FoodEntry } from "@/lib/db/schema";
 
@@ -13,7 +11,6 @@ export default function HistoryPage() {
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [scannerOpen, setScannerOpen] = useState(false);
 
   const loadEntries = async () => {
     const response = await fetch("/api/food");
@@ -33,29 +30,6 @@ export default function HistoryPage() {
     if (response.ok) {
       setEntries(entries.filter((e) => e.id !== id));
     }
-  };
-
-  const handleSave = async (data: {
-    name: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-    description: string;
-    imageUrl?: string;
-  }) => {
-    const response = await fetch("/api/food", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to save entry");
-    }
-
-    loadEntries();
   };
 
   const filteredEntries = entries.filter((entry) =>
@@ -166,13 +140,6 @@ export default function HistoryPage() {
             })}
         </div>
       )}
-
-      <FloatingCameraButton onClick={() => setScannerOpen(true)} />
-      <FoodScanner
-        open={scannerOpen}
-        onOpenChange={setScannerOpen}
-        onSave={handleSave}
-      />
     </div>
   );
 }

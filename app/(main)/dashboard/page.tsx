@@ -4,8 +4,6 @@ import { useState, useEffect, useCallback } from "react";
 import { DailyProgress } from "@/components/dashboard/DailyProgress";
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { FoodEntryCard } from "@/components/food/FoodEntryCard";
-import { FoodScanner } from "@/components/food/FoodScanner";
-import { FloatingCameraButton } from "@/components/layout/FloatingCameraButton";
 import { GoalsWizard } from "@/components/onboarding/GoalsWizard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -29,7 +27,6 @@ export default function DashboardPage() {
   const [entries, setEntries] = useState<FoodEntry[]>([]);
   const [goals, setGoals] = useState<Goals | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [scannerOpen, setScannerOpen] = useState(false);
   const [showOnboarding, setShowOnboarding] = useState(false);
 
   const fetchData = useCallback(async () => {
@@ -71,29 +68,6 @@ export default function DashboardPage() {
     }),
     { calories: 0, protein: 0, carbs: 0, fat: 0 }
   );
-
-  const handleSave = async (data: {
-    name: string;
-    calories: number;
-    protein: number;
-    carbs: number;
-    fat: number;
-    fiber: number;
-    description: string;
-    imageUrl?: string;
-  }) => {
-    const response = await fetch("/api/food", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data),
-    });
-
-    if (!response.ok) {
-      throw new Error("Failed to save entry");
-    }
-
-    fetchData();
-  };
 
   const handleDelete = async (id: string) => {
     const response = await fetch(`/api/food/${id}`, {
@@ -180,13 +154,6 @@ export default function DashboardPage() {
         )}
       </div>
 
-      <FloatingCameraButton onClick={() => setScannerOpen(true)} />
-      <FoodScanner
-        open={scannerOpen}
-        onOpenChange={setScannerOpen}
-        onSave={handleSave}
-      />
-      
       <GoalsWizard
         open={showOnboarding}
         onComplete={handleOnboardingComplete}
