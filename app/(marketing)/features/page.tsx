@@ -12,28 +12,28 @@ function ScannerMockup() {
   return (
     <div className="relative">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-stone-200 dark:border-zinc-800 overflow-hidden">
-        <div className="bg-stone-100 dark:bg-zinc-800 px-4 py-3 flex items-center justify-between">
-          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
+        <div className="bg-stone-100 dark:bg-zinc-800 px-3 sm:px-4 py-2 sm:py-3 flex items-center justify-between">
+          <span className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">
             Scan Your Food
           </span>
           <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-400" />
-            <div className="w-3 h-3 rounded-full bg-amber-400" />
-            <div className="w-3 h-3 rounded-full bg-emerald-400" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-400" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-400" />
+            <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-400" />
           </div>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Camera preview */}
-          <div className="aspect-[4/3] rounded-xl bg-gradient-to-br from-stone-200 to-stone-300 dark:from-zinc-700 dark:to-zinc-800 flex items-center justify-center mb-4 relative overflow-hidden">
-            <div className="absolute inset-4 border-2 border-dashed border-amber-500/50 rounded-lg" />
-            <div className="w-16 h-16 rounded-full bg-amber-500/20 flex items-center justify-center">
+          <div className="aspect-[4/3] rounded-xl bg-gradient-to-br from-stone-200 to-stone-300 dark:from-zinc-700 dark:to-zinc-800 flex items-center justify-center mb-3 sm:mb-4 relative overflow-hidden">
+            <div className="absolute inset-2 sm:inset-4 border-2 border-dashed border-amber-500/50 rounded-lg" />
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-amber-500/20 flex items-center justify-center">
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
                 strokeWidth="2"
-                className="w-8 h-8 text-amber-600"
+                className="w-6 h-6 sm:w-8 sm:h-8 text-amber-600"
               >
                 <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
                 <circle cx="12" cy="13" r="3" />
@@ -42,16 +42,16 @@ function ScannerMockup() {
           </div>
 
           {/* Results preview */}
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <span className="font-medium text-stone-900 dark:text-stone-100">
+          <div className="space-y-2 sm:space-y-3">
+            <div className="flex items-center justify-between gap-2">
+              <span className="font-medium text-sm sm:text-base text-stone-900 dark:text-stone-100 truncate">
                 Grilled Salmon Salad
               </span>
-              <span className="text-xs px-2 py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400">
+              <span className="text-[10px] sm:text-xs px-2 py-0.5 sm:py-1 rounded-full bg-emerald-100 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 whitespace-nowrap">
                 High confidence
               </span>
             </div>
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
               {[
                 { label: "Cal", value: "485" },
                 { label: "Protein", value: "42g" },
@@ -60,12 +60,14 @@ function ScannerMockup() {
               ].map((item) => (
                 <div
                   key={item.label}
-                  className="p-2 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center"
+                  className="p-1.5 sm:p-2 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center"
                 >
-                  <p className="text-lg font-bold text-stone-900 dark:text-stone-100">
+                  <p className="text-sm sm:text-lg font-bold text-stone-900 dark:text-stone-100">
                     {item.value}
                   </p>
-                  <p className="text-xs text-stone-500">{item.label}</p>
+                  <p className="text-[10px] sm:text-xs text-stone-500">
+                    {item.label}
+                  </p>
                 </div>
               ))}
             </div>
@@ -74,7 +76,7 @@ function ScannerMockup() {
       </div>
 
       {/* Floating badge */}
-      <div className="absolute -top-4 -right-4 px-3 py-2 rounded-xl bg-amber-500 text-white text-sm font-medium shadow-lg">
+      <div className="absolute -top-3 -right-2 sm:-top-4 sm:-right-4 px-2 sm:px-3 py-1 sm:py-2 rounded-lg sm:rounded-xl bg-amber-500 text-white text-xs sm:text-sm font-medium shadow-lg">
         ~5 seconds
       </div>
     </div>
@@ -85,30 +87,36 @@ function GoalsMockup() {
   return (
     <div className="relative">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-stone-200 dark:border-zinc-800 overflow-hidden">
-        <div className="bg-stone-100 dark:bg-zinc-800 px-4 py-3">
-          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
+        <div className="bg-stone-100 dark:bg-zinc-800 px-3 sm:px-4 py-2 sm:py-3">
+          <span className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">
             Your Targets
           </span>
         </div>
-        <div className="p-6 space-y-4">
+        <div className="p-4 sm:p-6 space-y-3 sm:space-y-4">
           {/* Profile summary */}
-          <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
-            <div className="grid grid-cols-3 gap-4 text-center">
+          <div className="p-3 sm:p-4 rounded-xl bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/20">
+            <div className="grid grid-cols-3 gap-2 sm:gap-4 text-center">
               <div>
-                <p className="text-xs text-stone-500 mb-1">Age</p>
-                <p className="font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">
+                  Age
+                </p>
+                <p className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">
                   28
                 </p>
               </div>
               <div>
-                <p className="text-xs text-stone-500 mb-1">Weight</p>
-                <p className="font-bold text-stone-900 dark:text-stone-100">
+                <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">
+                  Weight
+                </p>
+                <p className="text-sm sm:text-base font-bold text-stone-900 dark:text-stone-100">
                   165 lbs
                 </p>
               </div>
               <div>
-                <p className="text-xs text-stone-500 mb-1">Goal</p>
-                <p className="font-bold text-emerald-600 dark:text-emerald-400">
+                <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">
+                  Goal
+                </p>
+                <p className="text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400">
                   Maintain
                 </p>
               </div>
@@ -122,8 +130,8 @@ function GoalsMockup() {
             { label: "Carbs", value: "220g", color: "bg-blue-500" },
             { label: "Fat", value: "73g", color: "bg-purple-500" },
           ].map((item) => (
-            <div key={item.label} className="space-y-2">
-              <div className="flex justify-between text-sm">
+            <div key={item.label} className="space-y-1.5 sm:space-y-2">
+              <div className="flex justify-between text-xs sm:text-sm">
                 <span className="text-stone-600 dark:text-stone-400">
                   {item.label}
                 </span>
@@ -131,7 +139,7 @@ function GoalsMockup() {
                   {item.value}
                 </span>
               </div>
-              <div className="h-2 rounded-full bg-stone-200 dark:bg-zinc-700">
+              <div className="h-1.5 sm:h-2 rounded-full bg-stone-200 dark:bg-zinc-700">
                 <div
                   className={`h-full rounded-full ${item.color}`}
                   style={{ width: "100%" }}
@@ -149,47 +157,52 @@ function ProgressMockup() {
   return (
     <div className="relative">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-stone-200 dark:border-zinc-800 overflow-hidden">
-        <div className="bg-stone-100 dark:bg-zinc-800 px-4 py-3">
-          <span className="text-sm font-medium text-stone-700 dark:text-stone-300">
+        <div className="bg-stone-100 dark:bg-zinc-800 px-3 sm:px-4 py-2 sm:py-3">
+          <span className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">
             Weekly Progress
           </span>
         </div>
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Chart mockup */}
-          <div className="h-40 flex items-end justify-between gap-2 mb-4">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map(
-              (day, index) => {
-                const heights = [65, 80, 72, 90, 85, 60, 45];
-                return (
-                  <div key={day} className="flex-1 flex flex-col items-center">
-                    <div
-                      className="w-full rounded-t-lg bg-gradient-to-t from-amber-500 to-orange-400 transition-all hover:from-amber-400 hover:to-orange-300"
-                      style={{ height: `${heights[index]}%` }}
-                    />
-                    <span className="text-xs text-stone-500 mt-2">{day}</span>
-                  </div>
-                );
-              }
-            )}
+          <div className="h-28 sm:h-40 flex items-end justify-between gap-1 sm:gap-2 mb-3 sm:mb-4">
+            {["M", "T", "W", "T", "F", "S", "S"].map((day, index) => {
+              const heights = [65, 80, 72, 90, 85, 60, 45];
+              return (
+                <div
+                  key={`${day}-${index}`}
+                  className="flex-1 flex flex-col items-center"
+                >
+                  <div
+                    className="w-full rounded-t-md sm:rounded-t-lg bg-gradient-to-t from-amber-500 to-orange-400 transition-all hover:from-amber-400 hover:to-orange-300"
+                    style={{ height: `${heights[index]}%` }}
+                  />
+                  <span className="text-[10px] sm:text-xs text-stone-500 mt-1 sm:mt-2">
+                    {day}
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-3 gap-3">
-            <div className="p-3 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center">
-              <p className="text-lg font-bold text-stone-900 dark:text-stone-100">
+          <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="p-2 sm:p-3 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center">
+              <p className="text-sm sm:text-lg font-bold text-stone-900 dark:text-stone-100">
                 1,847
               </p>
-              <p className="text-xs text-stone-500">Avg daily</p>
+              <p className="text-[10px] sm:text-xs text-stone-500">Avg daily</p>
             </div>
-            <div className="p-3 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center">
-              <p className="text-lg font-bold text-emerald-600">7</p>
-              <p className="text-xs text-stone-500">Day streak</p>
+            <div className="p-2 sm:p-3 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center">
+              <p className="text-sm sm:text-lg font-bold text-emerald-600">7</p>
+              <p className="text-[10px] sm:text-xs text-stone-500">
+                Day streak
+              </p>
             </div>
-            <div className="p-3 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center">
-              <p className="text-lg font-bold text-stone-900 dark:text-stone-100">
+            <div className="p-2 sm:p-3 rounded-lg bg-stone-100 dark:bg-zinc-800 text-center">
+              <p className="text-sm sm:text-lg font-bold text-stone-900 dark:text-stone-100">
                 28
               </p>
-              <p className="text-xs text-stone-500">Meals logged</p>
+              <p className="text-[10px] sm:text-xs text-stone-500">Meals</p>
             </div>
           </div>
         </div>
@@ -202,22 +215,24 @@ function HistoryMockup() {
   return (
     <div className="relative">
       <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl border border-stone-200 dark:border-zinc-800 overflow-hidden">
-        <div className="bg-stone-100 dark:bg-zinc-800 px-4 py-3 flex items-center gap-3">
+        <div className="bg-stone-100 dark:bg-zinc-800 px-3 sm:px-4 py-2 sm:py-3 flex items-center gap-2 sm:gap-3">
           <svg
             xmlns="http://www.w3.org/2000/svg"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
             strokeWidth="2"
-            className="w-4 h-4 text-stone-400"
+            className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-stone-400"
           >
             <circle cx="11" cy="11" r="8" />
             <path d="m21 21-4.3-4.3" />
           </svg>
-          <span className="text-sm text-stone-500">Search meals...</span>
+          <span className="text-xs sm:text-sm text-stone-500">
+            Search meals...
+          </span>
         </div>
-        <div className="p-4 space-y-3">
-          <div className="flex items-center justify-between text-sm">
+        <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
+          <div className="flex items-center justify-between text-xs sm:text-sm">
             <span className="font-medium text-stone-900 dark:text-stone-100">
               Today
             </span>
@@ -232,21 +247,23 @@ function HistoryMockup() {
           ].map((meal) => (
             <div
               key={meal.name}
-              className="flex items-center gap-3 p-3 rounded-lg bg-stone-50 dark:bg-zinc-800/50 hover:bg-stone-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
+              className="flex items-center gap-2 sm:gap-3 p-2 sm:p-3 rounded-lg bg-stone-50 dark:bg-zinc-800/50 hover:bg-stone-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center">
-                <span className="text-amber-600 dark:text-amber-400 text-lg">
+              <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br from-amber-100 to-orange-100 dark:from-amber-900/30 dark:to-orange-900/30 flex items-center justify-center shrink-0">
+                <span className="text-amber-600 dark:text-amber-400 text-sm sm:text-lg">
                   🍽️
                 </span>
               </div>
-              <div className="flex-1">
-                <p className="text-sm font-medium text-stone-900 dark:text-stone-100">
+              <div className="flex-1 min-w-0">
+                <p className="text-xs sm:text-sm font-medium text-stone-900 dark:text-stone-100 truncate">
                   {meal.name}
                 </p>
-                <p className="text-xs text-stone-500">{meal.time}</p>
+                <p className="text-[10px] sm:text-xs text-stone-500">
+                  {meal.time}
+                </p>
               </div>
-              <span className="text-sm font-medium text-stone-600 dark:text-stone-400">
-                {meal.cal} cal
+              <span className="text-xs sm:text-sm font-medium text-stone-600 dark:text-stone-400 whitespace-nowrap">
+                {meal.cal}
               </span>
             </div>
           ))}

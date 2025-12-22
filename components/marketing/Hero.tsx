@@ -158,17 +158,17 @@ export function Hero() {
                   </div>
                 </div>
               </div>
-              <div className="aspect-[16/10] bg-gradient-to-br from-stone-100 to-stone-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center p-8">
+              <div className="aspect-[16/10] bg-gradient-to-br from-stone-100 to-stone-200 dark:from-zinc-800 dark:to-zinc-900 flex items-center justify-center p-4 sm:p-8">
                 {/* Mockup dashboard content */}
-                <div className="w-full max-w-2xl grid grid-cols-3 gap-4">
+                <div className="w-full max-w-2xl grid grid-cols-2 sm:grid-cols-3 gap-2 sm:gap-4">
                   {/* Calorie ring mockup */}
-                  <div className="col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-6 shadow-lg">
-                    <div className="flex items-center justify-between mb-4">
-                      <span className="text-sm font-medium text-stone-700 dark:text-stone-300">Today&apos;s Progress</span>
-                      <span className="text-xs text-stone-500">1,847 / 2,200 cal</span>
+                  <div className="col-span-2 bg-white dark:bg-zinc-800 rounded-xl p-3 sm:p-6 shadow-lg">
+                    <div className="flex items-center justify-between mb-2 sm:mb-4">
+                      <span className="text-xs sm:text-sm font-medium text-stone-700 dark:text-stone-300">Today&apos;s Progress</span>
+                      <span className="text-[10px] sm:text-xs text-stone-500 hidden xs:block">1,847 / 2,200 cal</span>
                     </div>
                     <div className="flex justify-center">
-                      <div className="relative w-32 h-32">
+                      <div className="relative w-20 h-20 sm:w-32 sm:h-32">
                         <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
                           <circle cx="50" cy="50" r="42" fill="none" stroke="#e5e7eb" strokeWidth="10" className="dark:stroke-zinc-700" />
                           <circle cx="50" cy="50" r="42" fill="none" stroke="url(#heroGradient)" strokeWidth="10" strokeLinecap="round" strokeDasharray="264" strokeDashoffset="44" />
@@ -180,20 +180,20 @@ export function Hero() {
                           </defs>
                         </svg>
                         <div className="absolute inset-0 flex flex-col items-center justify-center">
-                          <span className="text-2xl font-bold text-stone-900 dark:text-stone-100">84%</span>
+                          <span className="text-lg sm:text-2xl font-bold text-stone-900 dark:text-stone-100">84%</span>
                         </div>
                       </div>
                     </div>
                   </div>
-                  {/* Stats mockup */}
-                  <div className="flex flex-col gap-4">
-                    <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 shadow-lg flex-1">
-                      <p className="text-xs text-stone-500 mb-1">Protein</p>
-                      <p className="text-lg font-bold text-emerald-600">142g</p>
+                  {/* Stats mockup - hidden on very small, shown as row on small, column on sm+ */}
+                  <div className="col-span-2 sm:col-span-1 flex sm:flex-col gap-2 sm:gap-4">
+                    <div className="bg-white dark:bg-zinc-800 rounded-xl p-2 sm:p-4 shadow-lg flex-1">
+                      <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">Protein</p>
+                      <p className="text-sm sm:text-lg font-bold text-emerald-600">142g</p>
                     </div>
-                    <div className="bg-white dark:bg-zinc-800 rounded-xl p-4 shadow-lg flex-1">
-                      <p className="text-xs text-stone-500 mb-1">Meals</p>
-                      <p className="text-lg font-bold text-blue-600">4</p>
+                    <div className="bg-white dark:bg-zinc-800 rounded-xl p-2 sm:p-4 shadow-lg flex-1">
+                      <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">Meals</p>
+                      <p className="text-sm sm:text-lg font-bold text-blue-600">4</p>
                     </div>
                   </div>
                 </div>

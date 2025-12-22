@@ -183,46 +183,50 @@ export function PricingCalculator() {
         </div>
 
         {/* Your Cost Results */}
-        <div className="grid grid-cols-3 gap-4 mb-6">
-          <div className="p-4 rounded-xl bg-stone-50 dark:bg-zinc-800 text-center">
-            <p className="text-xs text-stone-500 mb-1">Daily</p>
-            <p className="text-xl font-bold text-stone-900 dark:text-stone-100">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4 mb-6">
+          <div className="p-2 sm:p-4 rounded-xl bg-stone-50 dark:bg-zinc-800 text-center">
+            <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">
+              Daily
+            </p>
+            <p className="text-base sm:text-xl font-bold text-stone-900 dark:text-stone-100">
               ${dailyCost.toFixed(2)}
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-center border border-amber-200 dark:border-amber-500/20">
-            <p className="text-xs text-amber-700 dark:text-amber-400 mb-1">
+          <div className="p-2 sm:p-4 rounded-xl bg-amber-50 dark:bg-amber-500/10 text-center border border-amber-200 dark:border-amber-500/20">
+            <p className="text-[10px] sm:text-xs text-amber-700 dark:text-amber-400 mb-0.5 sm:mb-1">
               Monthly
             </p>
-            <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
+            <p className="text-base sm:text-xl font-bold text-amber-600 dark:text-amber-400">
               ${monthlyCost.toFixed(2)}
             </p>
           </div>
-          <div className="p-4 rounded-xl bg-stone-50 dark:bg-zinc-800 text-center">
-            <p className="text-xs text-stone-500 mb-1">Yearly</p>
-            <p className="text-xl font-bold text-stone-900 dark:text-stone-100">
+          <div className="p-2 sm:p-4 rounded-xl bg-stone-50 dark:bg-zinc-800 text-center">
+            <p className="text-[10px] sm:text-xs text-stone-500 mb-0.5 sm:mb-1">
+              Yearly
+            </p>
+            <p className="text-base sm:text-xl font-bold text-stone-900 dark:text-stone-100">
               ${yearlyCost.toFixed(2)}
             </p>
           </div>
         </div>
 
         {/* Savings Highlight */}
-        <div className="p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 border border-emerald-200 dark:border-emerald-500/20 mb-8">
-          <div className="flex items-center justify-between">
+        <div className="p-3 sm:p-4 rounded-xl bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-500/10 dark:to-teal-500/10 border border-emerald-200 dark:border-emerald-500/20 mb-6 sm:mb-8">
+          <div className="flex items-center justify-between gap-2">
             <div>
-              <p className="text-sm font-medium text-emerald-800 dark:text-emerald-300">
+              <p className="text-xs sm:text-sm font-medium text-emerald-800 dark:text-emerald-300">
                 Average yearly savings
               </p>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">
+              <p className="text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400">
                 vs. {competitors.length} popular apps
               </p>
             </div>
             <div className="text-right">
-              <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              <p className="text-xl sm:text-2xl font-bold text-emerald-600 dark:text-emerald-400">
                 ${avgSavings.toFixed(0)}
               </p>
-              <p className="text-xs text-emerald-600 dark:text-emerald-400">
-                saved per year
+              <p className="text-[10px] sm:text-xs text-emerald-600 dark:text-emerald-400">
+                saved/year
               </p>
             </div>
           </div>

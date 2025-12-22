@@ -12,16 +12,18 @@ import {
 import { Button } from "@/components/ui/button";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Home } from "lucide-react";
 import Link from "next/link";
 
 export function Navbar() {
   const { data: session, status } = useSession();
 
-  const initials = session?.user?.name
-    ?.split(" ")
-    .map((n) => n[0])
-    .join("")
-    .toUpperCase() || "U";
+  const initials =
+    session?.user?.name
+      ?.split(" ")
+      .map((n) => n[0])
+      .join("")
+      .toUpperCase() || "U";
 
   return (
     <header className="sticky top-0 z-40 w-full border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-md">
@@ -46,18 +48,23 @@ export function Navbar() {
               <path d="M7 14v.01" />
             </svg>
           </div>
-          <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">Track4U</span>
+          <span className="text-xl font-bold text-zinc-900 dark:text-zinc-100">
+            Track4U
+          </span>
         </Link>
 
         <div className="flex items-center gap-2">
           <ThemeToggle />
-          
+
           {status === "loading" ? (
             <Skeleton className="h-10 w-10 rounded-full" />
           ) : (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" className="relative h-10 w-10 rounded-full">
+                <Button
+                  variant="ghost"
+                  className="relative h-10 w-10 rounded-full"
+                >
                   <Avatar className="h-10 w-10 border-2 border-zinc-300 dark:border-zinc-700">
                     <AvatarFallback className="bg-gradient-to-br from-amber-500 to-orange-600 text-white font-medium">
                       {initials}
@@ -65,14 +72,31 @@ export function Navbar() {
                   </Avatar>
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800">
+              <DropdownMenuContent
+                align="end"
+                className="w-56 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800"
+              >
                 <div className="flex flex-col space-y-1 p-2">
-                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">{session?.user?.name}</p>
-                  <p className="text-xs text-zinc-500">{session?.user?.email}</p>
+                  <p className="text-sm font-medium text-zinc-900 dark:text-zinc-100">
+                    {session?.user?.name}
+                  </p>
+                  <p className="text-xs text-zinc-500">
+                    {session?.user?.email}
+                  </p>
                 </div>
                 <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
-                <DropdownMenuItem asChild className="text-zinc-700 dark:text-zinc-300 focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:text-zinc-900 dark:focus:text-zinc-100 cursor-pointer">
+                <DropdownMenuItem
+                  asChild
+                  className="text-zinc-700 dark:text-zinc-300 focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:text-zinc-900 dark:focus:text-zinc-100 cursor-pointer"
+                >
                   <Link href="/settings">Settings</Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => signOut({ callbackUrl: "/" })}
+                  className="text-zinc-700 dark:text-zinc-300 focus:bg-zinc-100 dark:focus:bg-zinc-800 focus:text-zinc-900 dark:focus:text-zinc-100 cursor-pointer"
+                >
+                  <Home className="w-4 h-4 mr-2" />
+                  Back to Home
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="bg-zinc-200 dark:bg-zinc-800" />
                 <DropdownMenuItem

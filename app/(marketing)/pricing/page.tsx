@@ -229,66 +229,69 @@ export default function PricingPage() {
           </div>
 
           <div className="bg-stone-50 dark:bg-zinc-900 rounded-2xl border border-stone-200 dark:border-zinc-800 overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-stone-200 dark:border-zinc-800">
-                  <th className="px-6 py-4 text-left text-sm font-semibold text-stone-900 dark:text-stone-100">
-                    Feature
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-stone-900 dark:text-stone-100">
-                    Traditional Apps
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-stone-900 dark:text-stone-100">
-                    AI Competitors
-                  </th>
-                  <th className="px-6 py-4 text-center text-sm font-semibold text-amber-600 dark:text-amber-400">
-                    Track4U
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-stone-200 dark:divide-zinc-800">
-                {[
-                  {
-                    feature: "Monthly cost",
-                    traditional: "$7-20/mo",
-                    ai: "$10-15/mo",
-                    track4u: "$0-3/mo*",
-                  },
-                  {
-                    feature: "Yearly cost",
-                    traditional: "$39-80/yr",
-                    ai: "$60-72/yr",
-                    track4u: "$0-18/yr*",
-                  },
-                  { feature: "AI food scanning", traditional: "Limited", ai: "✓", track4u: "✓" },
-                  { feature: "GPT-5.2 Vision", traditional: "✗", ai: "✗", track4u: "✓" },
-                  { feature: "Goal setting", traditional: "✓", ai: "✓", track4u: "✓" },
-                  { feature: "Progress charts", traditional: "✓", ai: "✓", track4u: "✓" },
-                  { feature: "No ads", traditional: "Premium only", ai: "✓", track4u: "✓" },
-                  { feature: "Open source", traditional: "✗", ai: "✗", track4u: "✓" },
-                  { feature: "Self-hostable", traditional: "✗", ai: "✗", track4u: "✓" },
-                  { feature: "Pay when inactive", traditional: "✓", ai: "✓", track4u: "✗" },
-                  { feature: "Data privacy", traditional: "Varies", ai: "Their servers", track4u: "Your API key" },
-                ].map((row) => (
-                  <tr key={row.feature}>
-                    <td className="px-6 py-4 text-sm text-stone-700 dark:text-stone-300">
-                      {row.feature}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center text-stone-500">
-                      {row.traditional}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center text-stone-500">
-                      {row.ai}
-                    </td>
-                    <td className="px-6 py-4 text-sm text-center font-medium text-stone-900 dark:text-stone-100">
-                      {row.track4u}
-                    </td>
+            {/* Mobile: Scrollable table container */}
+            <div className="overflow-x-auto">
+              <table className="w-full min-w-[600px]">
+                <thead>
+                  <tr className="border-b border-stone-200 dark:border-zinc-800">
+                    <th className="px-4 sm:px-6 py-4 text-left text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">
+                      Feature
+                    </th>
+                    <th className="px-4 sm:px-6 py-4 text-center text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">
+                      Traditional
+                    </th>
+                    <th className="px-4 sm:px-6 py-4 text-center text-xs sm:text-sm font-semibold text-stone-900 dark:text-stone-100 whitespace-nowrap">
+                      AI Apps
+                    </th>
+                    <th className="px-4 sm:px-6 py-4 text-center text-xs sm:text-sm font-semibold text-amber-600 dark:text-amber-400 whitespace-nowrap">
+                      Track4U
+                    </th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-            <div className="px-6 py-3 bg-stone-100 dark:bg-zinc-800/50 text-xs text-stone-500 text-center">
-              *Based on typical usage of 3-5 scans per day at ~$0.01/scan with GPT-5.2. Traditional: MyFitnessPal, Cronometer, Lose It!, etc. AI: SnapCalorie, Foodvisor, MacroFactor
+                </thead>
+                <tbody className="divide-y divide-stone-200 dark:divide-zinc-800">
+                  {[
+                    {
+                      feature: "Monthly cost",
+                      traditional: "$7-20/mo",
+                      ai: "$10-15/mo",
+                      track4u: "$0-3/mo*",
+                    },
+                    {
+                      feature: "Yearly cost",
+                      traditional: "$39-80/yr",
+                      ai: "$60-72/yr",
+                      track4u: "$0-18/yr*",
+                    },
+                    { feature: "AI food scanning", traditional: "Limited", ai: "✓", track4u: "✓" },
+                    { feature: "GPT-5.2 Vision", traditional: "✗", ai: "✗", track4u: "✓" },
+                    { feature: "Goal setting", traditional: "✓", ai: "✓", track4u: "✓" },
+                    { feature: "Progress charts", traditional: "✓", ai: "✓", track4u: "✓" },
+                    { feature: "No ads", traditional: "Premium only", ai: "✓", track4u: "✓" },
+                    { feature: "Open source", traditional: "✗", ai: "✗", track4u: "✓" },
+                    { feature: "Self-hostable", traditional: "✗", ai: "✗", track4u: "✓" },
+                    { feature: "Pay when inactive", traditional: "✓", ai: "✓", track4u: "✗" },
+                    { feature: "Data privacy", traditional: "Varies", ai: "Their servers", track4u: "Your key" },
+                  ].map((row) => (
+                    <tr key={row.feature}>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-stone-700 dark:text-stone-300 whitespace-nowrap">
+                        {row.feature}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-center text-stone-500 whitespace-nowrap">
+                        {row.traditional}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-center text-stone-500 whitespace-nowrap">
+                        {row.ai}
+                      </td>
+                      <td className="px-4 sm:px-6 py-3 sm:py-4 text-xs sm:text-sm text-center font-medium text-stone-900 dark:text-stone-100 whitespace-nowrap">
+                        {row.track4u}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            <div className="px-4 sm:px-6 py-3 bg-stone-100 dark:bg-zinc-800/50 text-[10px] sm:text-xs text-stone-500 text-center">
+              *Based on typical usage of 3-5 scans per day at ~$0.01/scan with GPT-5.2
             </div>
           </div>
         </div>

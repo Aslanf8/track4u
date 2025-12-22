@@ -14,7 +14,15 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Eye, EyeOff, Check, X, Sparkles, ArrowRight } from "lucide-react";
+import {
+  Eye,
+  EyeOff,
+  Check,
+  X,
+  Sparkles,
+  ArrowRight,
+  ArrowLeft,
+} from "lucide-react";
 
 interface PasswordRequirement {
   label: string;
@@ -134,6 +142,15 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-4">
+      {/* Back to home button */}
+      <Link
+        href="/"
+        className="absolute top-4 left-4 z-20 flex items-center gap-2 text-sm text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Back to home
+      </Link>
+
       {/* Background effects */}
       <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-amber-500/10 dark:from-amber-900/20 via-transparent to-transparent" />
       <div className="absolute inset-0 overflow-hidden pointer-events-none">

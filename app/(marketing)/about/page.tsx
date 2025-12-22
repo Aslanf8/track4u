@@ -190,7 +190,7 @@ export default function AboutPage() {
             developer experience, and ease of self-hosting.
           </p>
 
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
             {[
               { name: "Next.js 16", desc: "React framework" },
               { name: "TypeScript", desc: "Type safety" },
@@ -203,12 +203,12 @@ export default function AboutPage() {
             ].map((tech) => (
               <div
                 key={tech.name}
-                className="bg-white dark:bg-zinc-900 rounded-xl p-4 border border-stone-200 dark:border-zinc-800 text-center"
+                className="bg-white dark:bg-zinc-900 rounded-xl p-3 sm:p-4 border border-stone-200 dark:border-zinc-800 text-center"
               >
-                <p className="font-semibold text-stone-900 dark:text-stone-100">
+                <p className="font-semibold text-sm sm:text-base text-stone-900 dark:text-stone-100">
                   {tech.name}
                 </p>
-                <p className="text-xs text-stone-500">{tech.desc}</p>
+                <p className="text-[10px] sm:text-xs text-stone-500">{tech.desc}</p>
               </div>
             ))}
           </div>
@@ -218,7 +218,7 @@ export default function AboutPage() {
       {/* Connect */}
       <section className="py-16 sm:py-24 bg-white dark:bg-zinc-950">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="bg-gradient-to-br from-stone-900 to-zinc-900 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl p-8 sm:p-12 text-center">
+          <div className="bg-gradient-to-br from-stone-900 to-zinc-900 dark:from-zinc-800 dark:to-zinc-900 rounded-2xl p-6 sm:p-8 lg:p-12 text-center">
             <div className="w-16 h-16 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-6">
               <svg
                 xmlns="http://www.w3.org/2000/svg"

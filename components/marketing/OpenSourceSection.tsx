@@ -4,7 +4,7 @@ export function OpenSourceSection() {
   return (
     <section className="py-20 sm:py-28 bg-white dark:bg-zinc-900/50">
       <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-stone-900 to-zinc-900 dark:from-zinc-800 dark:to-zinc-900 p-8 sm:p-12 lg:p-16">
+        <div className="relative overflow-hidden rounded-2xl sm:rounded-3xl bg-gradient-to-br from-stone-900 to-zinc-900 dark:from-zinc-800 dark:to-zinc-900 p-5 sm:p-8 lg:p-12 xl:p-16">
           {/* Background pattern */}
           <div className="absolute inset-0 opacity-10">
             <div
@@ -34,10 +34,10 @@ export function OpenSourceSection() {
                 <span className="text-sm text-white/90">MIT Licensed</span>
               </div>
 
-              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-bold text-white mb-4">
                 Built in the open
               </h2>
-              <p className="text-lg text-stone-300 mb-8 leading-relaxed">
+              <p className="text-base sm:text-lg text-stone-300 mb-6 sm:mb-8 leading-relaxed">
                 I enjoy building practical tools and sharing them. Every line of
                 code is public. Fork it, self-host it, learn from it — it&apos;s
                 all there. No vendor lock-in, no hidden agendas.
@@ -67,32 +67,34 @@ export function OpenSourceSection() {
 
             {/* Code preview */}
             <div className="bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden shadow-2xl">
-              <div className="flex items-center gap-2 px-4 py-3 bg-zinc-900 border-b border-zinc-800">
+              <div className="flex items-center gap-2 px-3 sm:px-4 py-2 sm:py-3 bg-zinc-900 border-b border-zinc-800">
                 <div className="flex gap-1.5">
-                  <div className="w-3 h-3 rounded-full bg-red-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-amber-500/80" />
-                  <div className="w-3 h-3 rounded-full bg-emerald-500/80" />
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-red-500/80" />
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-amber-500/80" />
+                  <div className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full bg-emerald-500/80" />
                 </div>
-                <span className="text-xs text-zinc-500 ml-2">terminal</span>
+                <span className="text-[10px] sm:text-xs text-zinc-500 ml-2">
+                  terminal
+                </span>
               </div>
-              <div className="p-4 font-mono text-sm">
+              <div className="p-3 sm:p-4 font-mono text-xs sm:text-sm overflow-x-auto">
                 <p className="text-zinc-500"># Clone the repository</p>
-                <p className="text-emerald-400 mb-3">
-                  $ git clone https://github.com/Aslanf8/track4u.git
+                <p className="text-emerald-400 mb-2 sm:mb-3 whitespace-nowrap">
+                  $ git clone github.com/Aslanf8/track4u
                 </p>
 
                 <p className="text-zinc-500"># Install dependencies</p>
-                <p className="text-emerald-400 mb-3">$ npm install</p>
+                <p className="text-emerald-400 mb-2 sm:mb-3">$ npm install</p>
 
                 <p className="text-zinc-500"># Set up environment</p>
-                <p className="text-emerald-400 mb-3">
+                <p className="text-emerald-400 mb-2 sm:mb-3 whitespace-nowrap">
                   $ cp .env.example .env.local
                 </p>
 
                 <p className="text-zinc-500"># Run locally</p>
                 <p className="text-emerald-400">$ npm run dev</p>
-                <p className="text-zinc-400 mt-2">
-                  → Ready on http://localhost:3000
+                <p className="text-zinc-400 mt-2 text-[11px] sm:text-sm">
+                  → Ready on localhost:3000
                 </p>
               </div>
             </div>
