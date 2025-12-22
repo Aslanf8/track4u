@@ -27,9 +27,9 @@ export default async function MainLayout({
     <Provider session={session}>
       <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
         <Navbar />
-        <div className="flex">
+        <div className="flex min-h-[calc(100vh-4rem)]">
           <Sidebar />
-          <main className="flex-1 p-4 md:p-6 pb-24 md:pb-6">
+          <main className="flex-1 w-full min-w-0 p-3 sm:p-4 md:p-6 pb-24 md:pb-6">
             {children}
           </main>
         </div>

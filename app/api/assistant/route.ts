@@ -45,7 +45,7 @@ When users ask about OpenAI API keys: Explain that adding their own key is requi
 If the user hasn't provided enough context, ask ONE clarifying question. Never give medical advice - suggest consulting a professional for health conditions.`;
 
     const response = await client.chat.completions.create({
-      model: "gpt-4.1-mini",
+      model: "gpt-5.2",
       messages: [
         { role: "system", content: systemPrompt },
         { role: "user", content: fullMessage },

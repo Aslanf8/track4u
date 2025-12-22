@@ -127,7 +127,7 @@ export default function SettingsPage() {
       if (data.valid) {
         setKeyTestResult({
           valid: true,
-          message: `Key is valid! ${data.hasGpt4Access ? "GPT-4 access confirmed." : ""}`,
+          message: `Key is valid! ${data.hasGpt5Access ? "GPT-5.2 access confirmed." : data.hasGpt4Access ? "GPT-4 access confirmed." : ""}`,
         });
         toast.success("API key is valid!");
       } else {
@@ -209,40 +209,40 @@ export default function SettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <Skeleton className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800" />
-        <Skeleton className="h-64 w-full bg-zinc-200 dark:bg-zinc-800" />
-        <Skeleton className="h-48 w-full bg-zinc-200 dark:bg-zinc-800" />
+      <div className="w-full max-w-2xl mx-auto space-y-4 sm:space-y-6 px-1">
+        <Skeleton className="h-7 sm:h-8 w-36 sm:w-48 bg-zinc-200 dark:bg-zinc-800" />
+        <Skeleton className="h-48 sm:h-64 w-full bg-zinc-200 dark:bg-zinc-800" />
+        <Skeleton className="h-36 sm:h-48 w-full bg-zinc-200 dark:bg-zinc-800" />
       </div>
     );
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+    <div className="w-full max-w-2xl mx-auto space-y-4 sm:space-y-6 px-1">
+      <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
         Settings
       </h1>
 
       {/* Profile Section */}
       <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100">
             Profile
           </CardTitle>
-          <CardDescription className="text-zinc-600 dark:text-zinc-500">
+          <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">
             Your account information
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-4">
-            <div className="w-16 h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-2xl font-bold text-white">
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <div className="flex items-center gap-3 sm:gap-4">
+            <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-xl sm:text-2xl font-bold text-white shrink-0">
               {session?.user?.name?.[0]?.toUpperCase() || "U"}
             </div>
-            <div>
-              <p className="text-lg font-medium text-zinc-900 dark:text-zinc-100">
+            <div className="min-w-0">
+              <p className="text-base sm:text-lg font-medium text-zinc-900 dark:text-zinc-100 truncate">
                 {session?.user?.name}
               </p>
-              <p className="text-sm text-zinc-600 dark:text-zinc-500">
+              <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500 truncate">
                 {session?.user?.email}
               </p>
             </div>
@@ -252,8 +252,8 @@ export default function SettingsPage() {
 
       {/* OpenAI API Key Section */}
       <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100 flex items-center gap-2">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -262,17 +262,17 @@ export default function SettingsPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="w-5 h-5"
+              className="w-4 h-4 sm:w-5 sm:h-5"
             >
               <path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4" />
             </svg>
             OpenAI API Key
           </CardTitle>
-          <CardDescription className="text-zinc-600 dark:text-zinc-500">
+          <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">
             Use your own OpenAI API key to be billed directly to your account
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
+        <CardContent className="space-y-4 px-4 sm:px-6">
           {apiKeyStatus.hasKey && !showKeyInput ? (
             <div className="space-y-4">
               <div className="flex items-center justify-between p-3 rounded-lg bg-green-500/10 border border-green-500/20">
@@ -313,7 +313,7 @@ export default function SettingsPage() {
                 <Button
                   variant="outline"
                   onClick={() => setShowKeyInput(true)}
-                  className="flex-1 border-zinc-300 dark:border-zinc-700"
+                  className="flex-1 h-9 sm:h-10 text-sm border-zinc-300 dark:border-zinc-700"
                 >
                   Update Key
                 </Button>
@@ -321,7 +321,7 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={handleRemoveKey}
                   disabled={isRemovingKey}
-                  className="border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
+                  className="h-9 sm:h-10 text-sm border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10"
                 >
                   {isRemovingKey ? "Removing..." : "Remove"}
                 </Button>
@@ -414,14 +414,14 @@ export default function SettingsPage() {
                   variant="outline"
                   onClick={handleTestKey}
                   disabled={isTestingKey || !newApiKey.trim()}
-                  className="flex-1 border-zinc-300 dark:border-zinc-700"
+                  className="flex-1 h-9 sm:h-10 text-sm border-zinc-300 dark:border-zinc-700"
                 >
                   {isTestingKey ? "Testing..." : "Test Key"}
                 </Button>
                 <Button
                   onClick={handleSaveKey}
                   disabled={isSavingKey || !newApiKey.trim()}
-                  className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                  className="flex-1 h-9 sm:h-10 text-sm bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
                 >
                   {isSavingKey ? "Saving..." : "Save Key"}
                 </Button>
@@ -448,20 +448,20 @@ export default function SettingsPage() {
 
       {/* Daily Goals Section */}
       <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100">
             Daily Goals
           </CardTitle>
-          <CardDescription className="text-zinc-600 dark:text-zinc-500">
+          <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">
             Set your daily nutrition targets
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
+        <CardContent className="space-y-4 px-4 sm:px-6">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label
                 htmlFor="calories"
-                className="text-zinc-700 dark:text-zinc-300"
+                className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300"
               >
                 Calories
               </Label>
@@ -475,13 +475,13 @@ export default function SettingsPage() {
                     dailyCalories: parseInt(e.target.value) || 0,
                   })
                 }
-                className="bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-9 sm:h-10 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label
                 htmlFor="protein"
-                className="text-zinc-700 dark:text-zinc-300"
+                className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300"
               >
                 Protein (g)
               </Label>
@@ -495,13 +495,13 @@ export default function SettingsPage() {
                     dailyProtein: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-9 sm:h-10 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               />
             </div>
-            <div className="space-y-2">
+            <div className="space-y-1.5 sm:space-y-2">
               <Label
                 htmlFor="carbs"
-                className="text-zinc-700 dark:text-zinc-300"
+                className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300"
               >
                 Carbs (g)
               </Label>
@@ -515,11 +515,11 @@ export default function SettingsPage() {
                     dailyCarbs: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-9 sm:h-10 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="fat" className="text-zinc-700 dark:text-zinc-300">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="fat" className="text-xs sm:text-sm text-zinc-700 dark:text-zinc-300">
                 Fat (g)
               </Label>
               <Input
@@ -532,7 +532,7 @@ export default function SettingsPage() {
                     dailyFat: parseFloat(e.target.value) || 0,
                   })
                 }
-                className="bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
+                className="h-9 sm:h-10 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100"
               />
             </div>
           </div>
@@ -540,7 +540,7 @@ export default function SettingsPage() {
           <Button
             onClick={handleSaveGoals}
             disabled={isSaving}
-            className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+            className="w-full h-9 sm:h-10 text-sm bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
           >
             {isSaving ? "Saving..." : "Save Goals"}
           </Button>
@@ -549,19 +549,19 @@ export default function SettingsPage() {
 
       {/* Danger Zone */}
       <Card className="bg-white/50 dark:bg-zinc-900/50 border-red-200 dark:border-red-900/50">
-        <CardHeader>
-          <CardTitle className="text-lg text-red-600 dark:text-red-400">
+        <CardHeader className="px-4 sm:px-6">
+          <CardTitle className="text-base sm:text-lg text-red-600 dark:text-red-400">
             Danger Zone
           </CardTitle>
-          <CardDescription className="text-zinc-600 dark:text-zinc-500">
+          <CardDescription className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">
             Irreversible actions
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6">
           <Button
             variant="outline"
             onClick={() => signOut({ callbackUrl: "/sign-in" })}
-            className="border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
+            className="h-9 sm:h-10 text-sm border-red-300 dark:border-red-500/30 text-red-600 dark:text-red-400 hover:bg-red-500/10 hover:text-red-600 dark:hover:text-red-400"
           >
             Sign Out
           </Button>

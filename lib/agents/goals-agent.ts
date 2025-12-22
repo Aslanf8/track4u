@@ -2,7 +2,7 @@ import { Agent } from "@openai/agents";
 
 export const goalsAssistant = new Agent({
   name: "Nutrition Goals Assistant",
-  model: "gpt-4.1-mini",
+  model: "gpt-5.2",
   instructions: `You are a concise nutrition advisor helping users set daily macro goals. Your responses must be:
 - Maximum 2 sentences
 - Direct and actionable

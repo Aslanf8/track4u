@@ -1,75 +1,290 @@
-# Track4U
+<p align="center">
+  <img src="https://via.placeholder.com/120x120/f59e0b/ffffff?text=🍽️" alt="Track4U Logo" width="120" height="120" />
+</p>
 
-An open source calorie tracking app powered by AI. You bring your own OpenAI API key.
+<h1 align="center">Track4U</h1>
+
+<p align="center">
+  <strong>AI-powered calorie tracking. No subscriptions. Open source.</strong>
+</p>
+
+<p align="center">
+  <a href="#features">Features</a> •
+  <a href="#how-it-works">How It Works</a> •
+  <a href="#getting-started">Getting Started</a> •
+  <a href="#tech-stack">Tech Stack</a> •
+  <a href="#contributing">Contributing</a>
+</p>
+
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License" />
+  <img src="https://img.shields.io/badge/PRs-welcome-brightgreen.svg" alt="PRs Welcome" />
+  <img src="https://img.shields.io/badge/next.js-16-black" alt="Next.js 16" />
+</p>
+
+---
 
 ## Why I Built This
 
-Tracking food is tedious. Searching databases, measuring portions, logging every ingredient—it kills consistency. Most people give up because it takes too long.
+I'm [Aslan Farboud](https://www.aslanfarboud.com), and I built Track4U because I wanted it for myself.
 
-I wanted something different: **snap a photo and move on**. That's it.
+I needed an efficient way to track my food intake. Every existing app felt painfully slow — searching databases, estimating portions, manually entering ingredients. The friction was killing my consistency.
 
-The goal isn't 100% accuracy. It's 70-80% accuracy with minimal friction. A rough estimate you actually log beats a perfect entry you skip. Consistency > precision.
+Then I realized: **GPT-5.2 Vision is now incredibly good at analyzing food photos, and it costs about $0.01 per scan.** The software to tie it together isn't rocket science. So I built what I wanted to use.
 
-And no subscriptions. No ads. No monthly fees. You use your own OpenAI API key and pay only for what you use (usually pennies per scan).
+The technology finally made this obvious to build, and I cared enough about the problem to build it properly.
+
+### How It Works
+
+Take a photo → AI analyzes it → Get macros in seconds. That's it.
+
+### Why No Subscription?
+
+You bring your own OpenAI API key. You pay OpenAI directly (~$0.01/scan). I don't take a cut. The software is free and open source.
+
+---
 
 ## Features
 
-- **AI Food Scanning** - Photo → macros in seconds
-- **Goal Setting** - AI-guided setup for your nutrition targets
-- **Progress Tracking** - Simple charts, no bloat
-- **History** - Search past meals
-- **Dark/Light Mode**
+### 📸 AI Food Scanning
 
-## Tech Stack
+Point, shoot, done. Vision AI identifies food items and estimates nutritional content from a single photo.
 
-- Next.js 16 (App Router)
-- TypeScript
-- Tailwind CSS + shadcn/ui
-- Drizzle ORM + Turso (SQLite)
-- NextAuth.js
-- OpenAI API (GPT-4o Vision)
+- Recognizes complex multi-item meals
+- Estimates portion sizes automatically
+- Returns calories, protein, carbs, fat, and fiber
+- Add context like "half portion" for better accuracy
 
-## Getting Started
+### 🎯 Smart Goal Setup
 
-1. Clone the repo
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Copy `.env.example` to `.env.local` and fill in:
+Science-backed macro calculations based on your body, activity level, and goals.
 
-   - `AUTH_SECRET` - Generate with `npx auth secret`
-   - `DATABASE_URL` - Your Turso database URL
-   - `DATABASE_AUTH_TOKEN` - Your Turso auth token
-   - `ENCRYPTION_KEY` - 32-byte hex key for API key encryption
+- Mifflin-St Jeor equation for accurate TDEE
+- Support for lose, maintain, or gain goals
+- AI assistant to answer nutrition questions
+- Fully adjustable targets
 
-4. Push the database schema:
+### 📊 Progress Analytics
 
-   ```bash
-   npm run db:push
-   ```
+Beautiful charts show calorie trends and macro distribution over time.
 
-5. Run the dev server:
+- 7-day and 30-day calorie trends
+- Macro distribution pie charts
+- Daily averages and streak tracking
 
-   ```bash
-   npm run dev
-   ```
+### 📜 Meal History
 
-6. Open [http://localhost:3000](http://localhost:3000)
+Browse past meals grouped by date, search by name, and track patterns.
+
+- Grouped by Today, Yesterday, or date
+- Daily calorie totals per group
+- Quick search functionality
+- Full edit/delete capabilities
+
+### 🔐 Security
+
+Your data stays yours.
+
+- API keys encrypted with AES-256-GCM
+- Only last 4 characters visible in UI
+- No API key logging or transmission
+- BYOK model — your billing stays between you and the AI provider
+
+---
 
 ## How It Works
 
-Add your OpenAI API key in settings. It's encrypted and stored securely. When you scan food, the image goes to GPT-4o Vision which returns the nutritional breakdown.
+```
+┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
+│  1. Snap Photo  │ -> │  2. AI Analyzes │ -> │  3. Track       │
+│                 │    │                 │    │                 │
+│  Point camera   │    │  Vision AI      │    │  Review results │
+│  at your meal   │    │  identifies     │    │  Save to diary  │
+│                 │    │  food & macros  │    │                 │
+└─────────────────┘    └─────────────────┘    └─────────────────┘
+```
 
-**Cost**: ~$0.01-0.03 per scan depending on image size. No markup. No middleman.
+### The BYOK Model
 
-## Philosophy
+**BYOK = Bring Your Own Key**
 
-- Speed over perfection
-- Logging something beats logging nothing
-- Your API key, your usage costs
-- No subscriptions, ever
+Instead of paying us a monthly subscription, you use your own AI API key and pay the provider directly.
+
+| Metric            | Track4U (BYOK) | Subscription Apps |
+| ----------------- | -------------- | ----------------- |
+| Monthly cost      | $0-3\*         | $10-15            |
+| Yearly cost       | $0-18\*        | $80-180           |
+| Pay when inactive | No             | Yes               |
+| Data sold         | Never          | Maybe             |
+
+\*Based on ~$0.01 per scan with GPT-5.2, 3-5 scans/day
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- Node.js 18+
+- A Turso database (or any LibSQL-compatible database)
+- An AI API key (for food scanning)
+
+### Quick Start
+
+```bash
+# Clone the repository
+git clone https://github.com/Aslanf8/track4u.git
+cd track4u
+
+# Install dependencies
+npm install
+
+# Set up environment
+cp .env.example .env.local
+
+# Push database schema
+npm run db:push
+
+# Start development server
+npm run dev
+```
+
+Open [http://localhost:3000](http://localhost:3000) to see the app.
+
+### Environment Variables
+
+```env
+# Generate with: npx auth secret
+AUTH_SECRET=your-auth-secret
+
+# Turso database credentials
+DATABASE_URL=libsql://your-database.turso.io
+DATABASE_AUTH_TOKEN=your-turso-auth-token
+
+# Encryption key for API key storage
+ENCRYPTION_SECRET=your-32-char-secret-key
+```
+
+---
+
+## Tech Stack
+
+| Layer      | Technology                    |
+| ---------- | ----------------------------- |
+| Framework  | Next.js 16 (App Router)       |
+| Language   | TypeScript (strict)           |
+| Styling    | Tailwind CSS + shadcn/ui      |
+| Database   | Turso (SQLite) + Drizzle ORM  |
+| Auth       | NextAuth.js (Credentials)     |
+| AI         | Vision AI (provider-agnostic) |
+| Charts     | Recharts                      |
+| Encryption | Node.js crypto (AES-256-GCM)  |
+
+### Project Structure
+
+```
+app/
+├── (auth)/           # Sign-in/sign-up pages
+├── (main)/           # Protected app routes
+│   ├── dashboard/    # Daily progress hub
+│   ├── history/      # Meal history
+│   ├── progress/     # Analytics
+│   └── settings/     # User settings
+├── (marketing)/      # Public marketing pages
+└── api/              # API routes
+
+components/
+├── dashboard/        # Progress rings, stats
+├── food/             # Scanner, entry cards
+├── layout/           # Navigation components
+├── marketing/        # Landing page sections
+├── onboarding/       # Goal wizard
+└── ui/               # shadcn/ui components
+
+lib/
+├── auth.ts           # NextAuth configuration
+├── db/               # Drizzle schema & client
+├── encryption.ts     # AES-256-GCM utilities
+└── openai.ts         # AI integration
+```
+
+---
+
+## Database Schema
+
+### Users
+
+```
+id, email, passwordHash, name, encryptedApiKey, apiKeyLastFour, apiKeyAddedAt, createdAt
+```
+
+### User Goals
+
+```
+id, userId, age, sex, weight, height, activityLevel, goalType, dailyCalories, dailyProtein, dailyCarbs, dailyFat
+```
+
+### Food Entries
+
+```
+id, userId, imageUrl, name, calories, protein, carbs, fat, fiber, description, consumedAt, createdAt
+```
+
+---
+
+## Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run db:push      # Push schema to database
+npm run db:studio    # Open Drizzle Studio
+npm run lint         # Run ESLint
+```
+
+---
+
+## Self-Hosting
+
+Track4U is designed to be self-hostable. Deploy to any platform that supports Next.js:
+
+- **Vercel** — One-click deploy
+- **Railway** — Simple container deployment
+- **Docker** — Build your own container
+- **VPS** — Manual deployment
+
+See the [self-hosting guide](docs/self-hosting.md) for detailed instructions.
+
+---
+
+## Contributing
+
+Contributions are welcome! Whether it's bug fixes, new features, or documentation improvements.
+
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
+
+Please read the [Contributing Guide](CONTRIBUTING.md) for details.
+
+---
 
 ## License
 
-MIT
+MIT License — use it, fork it, make it your own.
+
+See [LICENSE](LICENSE) for details.
+
+---
+
+<p align="center">
+  <strong>Built by <a href="https://www.aslanfarboud.com">Aslan Farboud</a> — because I wanted this tool to exist.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/Aslanf8/track4u">GitHub</a> •
+  <a href="https://www.aslanfarboud.com">Portfolio</a>
+</p>

@@ -10,7 +10,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { image } = await request.json();
+    const { image, context } = await request.json();
 
     if (!image) {
       return NextResponse.json(
@@ -20,7 +20,7 @@ export async function POST(request: NextRequest) {
     }
 
     // User's API key is REQUIRED - no fallback
-    const result = await analyzeFoodImage(image, session.user.id);
+    const result = await analyzeFoodImage(image, session.user.id, context);
 
     return NextResponse.json(result);
   } catch (error) {

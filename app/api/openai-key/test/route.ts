@@ -25,12 +25,14 @@ export async function POST(request: NextRequest) {
       const testClient = new OpenAI({ apiKey });
       const models = await testClient.models.list();
       
-      // Check if GPT-4 models are available (indicates a paid account)
+      // Check if GPT-5 models are available (indicates a paid account with latest access)
+      const hasGpt5 = models.data.some(m => m.id.includes("gpt-5"));
       const hasGpt4 = models.data.some(m => m.id.includes("gpt-4"));
       
       return NextResponse.json({
         valid: true,
-        hasGpt4Access: hasGpt4,
+        hasGpt5Access: hasGpt5,
+        hasGpt4Access: hasGpt4, // Keep for backward compatibility
         modelsAvailable: models.data.length,
       });
     } catch (openaiError: unknown) {

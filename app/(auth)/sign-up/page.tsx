@@ -14,31 +14,70 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Eye, EyeOff, ArrowRight } from "lucide-react";
+import { Eye, EyeOff, Check, X, Sparkles, ArrowRight } from "lucide-react";
 
-export default function SignInPage() {
+interface PasswordRequirement {
+  label: string;
+  met: boolean;
+}
+
+export default function SignUpPage() {
   const router = useRouter();
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [step, setStep] = useState<"form" | "success">("form");
+
+  const passwordRequirements: PasswordRequirement[] = [
+    { label: "At least 8 characters", met: password.length >= 8 },
+    { label: "One uppercase letter", met: /[A-Z]/.test(password) },
+    { label: "One lowercase letter", met: /[a-z]/.test(password) },
+    { label: "One number", met: /[0-9]/.test(password) },
+  ];
+
+  const allRequirementsMet = passwordRequirements.every((req) => req.met);
+  const isFormValid =
+    name.length >= 2 && email.includes("@") && allRequirementsMet;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isFormValid) return;
+
     setIsLoading(true);
     setError("");
 
     try {
-      const result = await signIn("credentials", {
+      const res = await fetch("/api/auth/sign-up", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, password }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        setError(data.error || "Something went wrong");
+        return;
+      }
+
+      // Show success state briefly
+      setStep("success");
+
+      // Auto sign-in after successful registration
+      const signInResult = await signIn("credentials", {
         email,
         password,
         redirect: false,
       });
 
-      if (result?.error) {
-        setError("Invalid email or password");
+      if (signInResult?.error) {
+        // Registration worked but auto-login failed, redirect to sign-in
+        router.push("/sign-in");
       } else {
+        // Success! Redirect to dashboard
         router.push("/dashboard");
         router.refresh();
       }
@@ -48,6 +87,50 @@ export default function SignInPage() {
       setIsLoading(false);
     }
   };
+
+  if (step === "success") {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-4">
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-emerald-500/10 dark:from-emerald-900/20 via-transparent to-transparent" />
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-40 -right-40 w-80 h-80 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" />
+          <div
+            className="absolute -bottom-40 -left-40 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl animate-pulse"
+            style={{ animationDelay: "1s" }}
+          />
+        </div>
+
+        <Card className="w-full max-w-md relative z-10 bg-white/90 dark:bg-zinc-900/90 border-zinc-200 dark:border-zinc-800 backdrop-blur-sm overflow-hidden">
+          <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-amber-500/5" />
+          <CardContent className="relative pt-12 pb-8 text-center">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center mb-6 animate-bounce">
+              <Sparkles className="w-10 h-10 text-white" />
+            </div>
+            <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
+              Welcome aboard, {name.split(" ")[0]}!
+            </h2>
+            <p className="text-zinc-600 dark:text-zinc-400 mb-6">
+              Your account has been created. Setting up your dashboard...
+            </p>
+            <div className="flex items-center justify-center gap-2">
+              <div
+                className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"
+                style={{ animationDelay: "0ms" }}
+              />
+              <div
+                className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"
+                style={{ animationDelay: "150ms" }}
+              />
+              <div
+                className="w-2 h-2 rounded-full bg-emerald-500 animate-bounce"
+                style={{ animationDelay: "300ms" }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-100 via-zinc-50 to-zinc-100 dark:from-zinc-950 dark:via-zinc-900 dark:to-zinc-950 p-4">
@@ -81,20 +164,40 @@ export default function SignInPage() {
             </svg>
           </div>
           <CardTitle className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-            Welcome back
+            Create your account
           </CardTitle>
           <CardDescription className="text-zinc-600 dark:text-zinc-400">
-            Sign in to continue tracking
+            Start your nutrition tracking journey
           </CardDescription>
         </CardHeader>
 
         <CardContent className="space-y-5">
           <form onSubmit={handleSubmit} className="space-y-4">
             {error && (
-              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm">
+              <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-600 dark:text-red-400 text-sm flex items-center gap-2">
+                <X className="w-4 h-4 flex-shrink-0" />
                 {error}
               </div>
             )}
+
+            {/* Name field */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="name"
+                className="text-zinc-700 dark:text-zinc-300 text-sm font-medium"
+              >
+                Full name
+              </Label>
+              <Input
+                id="name"
+                type="text"
+                placeholder="John Doe"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                required
+                className="bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-500 focus:border-amber-500 focus:ring-amber-500/20 h-11"
+              />
+            </div>
 
             {/* Email field */}
             <div className="space-y-2">
@@ -127,7 +230,7 @@ export default function SignInPage() {
                 <Input
                   id="password"
                   type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
+                  placeholder="Create a strong password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -145,12 +248,36 @@ export default function SignInPage() {
                   )}
                 </button>
               </div>
+
+              {/* Password requirements */}
+              {password.length > 0 && (
+                <div className="mt-3 p-3 rounded-lg bg-zinc-100/80 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700/50 space-y-1.5">
+                  {passwordRequirements.map((req, idx) => (
+                    <div key={idx} className="flex items-center gap-2 text-xs">
+                      {req.met ? (
+                        <Check className="w-3.5 h-3.5 text-emerald-500" />
+                      ) : (
+                        <X className="w-3.5 h-3.5 text-zinc-400" />
+                      )}
+                      <span
+                        className={
+                          req.met
+                            ? "text-emerald-600 dark:text-emerald-400"
+                            : "text-zinc-500"
+                        }
+                      >
+                        {req.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
 
             <Button
               type="submit"
-              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-medium h-11 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all"
-              disabled={isLoading}
+              className="w-full bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white font-medium h-11 shadow-lg shadow-amber-500/20 hover:shadow-amber-500/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={isLoading || !isFormValid}
             >
               {isLoading ? (
                 <span className="flex items-center gap-2">
@@ -170,11 +297,11 @@ export default function SignInPage() {
                       d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                     />
                   </svg>
-                  Signing in...
+                  Creating account...
                 </span>
               ) : (
                 <span className="flex items-center gap-2">
-                  Sign in
+                  Get started
                   <ArrowRight className="w-4 h-4" />
                 </span>
               )}
@@ -188,19 +315,19 @@ export default function SignInPage() {
             </div>
             <div className="relative flex justify-center text-xs uppercase">
               <span className="bg-white dark:bg-zinc-900 px-2 text-zinc-500">
-                New to Track4U?
+                Already have an account?
               </span>
             </div>
           </div>
 
-          {/* Sign up link */}
-          <Link href="/sign-up" className="block">
+          {/* Sign in link */}
+          <Link href="/sign-in" className="block">
             <Button
               type="button"
               variant="outline"
               className="w-full border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300 hover:bg-zinc-100 dark:hover:bg-zinc-800 h-11"
             >
-              Create an account
+              Sign in instead
             </Button>
           </Link>
         </CardContent>

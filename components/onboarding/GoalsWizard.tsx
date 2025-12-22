@@ -266,7 +266,11 @@ export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
         setKeyTestResult({
           valid: true,
           message: `Key is valid! ${
-            data.hasGpt4Access ? "GPT-4 access confirmed." : ""
+            data.hasGpt5Access
+              ? "GPT-5.2 access confirmed."
+              : data.hasGpt4Access
+              ? "GPT-4 access confirmed."
+              : ""
           }`,
         });
       } else {

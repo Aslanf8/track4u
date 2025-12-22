@@ -83,71 +83,73 @@ export default function ProgressPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Skeleton className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800" />
-        <Skeleton className="h-80 w-full bg-zinc-200 dark:bg-zinc-800" />
-        <div className="grid grid-cols-2 gap-4">
-          <Skeleton className="h-64 bg-zinc-200 dark:bg-zinc-800" />
-          <Skeleton className="h-64 bg-zinc-200 dark:bg-zinc-800" />
+      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1">
+        <Skeleton className="h-7 sm:h-8 w-36 sm:w-48 bg-zinc-200 dark:bg-zinc-800" />
+        <Skeleton className="h-64 sm:h-80 w-full bg-zinc-200 dark:bg-zinc-800" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+          <Skeleton className="h-48 sm:h-64 bg-zinc-200 dark:bg-zinc-800" />
+          <Skeleton className="h-48 sm:h-64 bg-zinc-200 dark:bg-zinc-800" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">Progress</h1>
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1">
+      <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">Progress</h1>
 
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <p className="text-sm text-zinc-600 dark:text-zinc-500">Avg Daily Calories</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{avgCalories}</p>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3">
+        <Card className="p-2.5 sm:p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">Avg Daily Cal</p>
+          <p className="text-lg sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">{avgCalories}</p>
         </Card>
-        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <p className="text-sm text-zinc-600 dark:text-zinc-500">Total Entries</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{entries.length}</p>
+        <Card className="p-2.5 sm:p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">Total Entries</p>
+          <p className="text-lg sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">{entries.length}</p>
         </Card>
-        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <p className="text-sm text-zinc-600 dark:text-zinc-500">Days Logged</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <Card className="p-2.5 sm:p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">Days Logged</p>
+          <p className="text-lg sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
             {new Set(entries.map((e) => format(new Date(e.consumedAt), "yyyy-MM-dd"))).size}
           </p>
         </Card>
-        <Card className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <p className="text-sm text-zinc-600 dark:text-zinc-500">This Week</p>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+        <Card className="p-2.5 sm:p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500">This Week</p>
+          <p className="text-lg sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 truncate">
             {last7Days.reduce((sum, d) => sum + d.calories, 0)} cal
           </p>
         </Card>
       </div>
 
       <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-        <CardHeader>
-          <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Calorie Trend (Last 7 Days)</CardTitle>
+        <CardHeader className="px-3 sm:px-6 pb-2">
+          <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Calorie Trend (Last 7 Days)</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="h-64">
+        <CardContent className="px-2 sm:px-6">
+          <div className="h-48 sm:h-64">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={last7Days}>
+              <LineChart data={last7Days} margin={{ left: -20, right: 5 }}>
                 <XAxis
                   dataKey="date"
                   stroke="#71717a"
-                  fontSize={12}
+                  fontSize={10}
                   tickLine={false}
                   axisLine={false}
                 />
                 <YAxis
                   stroke="#71717a"
-                  fontSize={12}
+                  fontSize={10}
                   tickLine={false}
                   axisLine={false}
                   tickFormatter={(value) => `${value}`}
+                  width={40}
                 />
                 <Tooltip
                   contentStyle={{
                     backgroundColor: "var(--tooltip-bg, #18181b)",
                     border: "1px solid var(--tooltip-border, #27272a)",
                     borderRadius: "8px",
+                    fontSize: "12px",
                   }}
                   labelStyle={{ color: "var(--tooltip-label, #fafafa)" }}
                   itemStyle={{ color: "#f59e0b" }}
@@ -157,7 +159,7 @@ export default function ProgressPage() {
                   dataKey="calories"
                   stroke="#f59e0b"
                   strokeWidth={2}
-                  dot={{ fill: "#f59e0b", strokeWidth: 0 }}
+                  dot={{ fill: "#f59e0b", strokeWidth: 0, r: 3 }}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -165,21 +167,21 @@ export default function ProgressPage() {
         </CardContent>
       </Card>
 
-      <div className="grid md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
         <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Macro Distribution</CardTitle>
+          <CardHeader className="px-3 sm:px-6 pb-2">
+            <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Macro Distribution</CardTitle>
           </CardHeader>
-          <CardContent>
-            <div className="h-48">
+          <CardContent className="px-3 sm:px-6">
+            <div className="h-36 sm:h-48">
               <ResponsiveContainer width="100%" height="100%">
                 <PieChart>
                   <Pie
                     data={pieData}
                     cx="50%"
                     cy="50%"
-                    innerRadius={40}
-                    outerRadius={70}
+                    innerRadius={30}
+                    outerRadius={55}
                     paddingAngle={2}
                     dataKey="value"
                   >
@@ -192,20 +194,21 @@ export default function ProgressPage() {
                       backgroundColor: "var(--tooltip-bg, #18181b)",
                       border: "1px solid var(--tooltip-border, #27272a)",
                       borderRadius: "8px",
+                      fontSize: "12px",
                     }}
                     formatter={(value) => [`${Math.round(value as number)}g`, ""]}
                   />
                 </PieChart>
               </ResponsiveContainer>
             </div>
-            <div className="flex justify-center gap-6 mt-4">
+            <div className="flex justify-center gap-3 sm:gap-6 mt-3 sm:mt-4">
               {pieData.map((item) => (
-                <div key={item.name} className="flex items-center gap-2">
+                <div key={item.name} className="flex items-center gap-1.5 sm:gap-2">
                   <div
-                    className="w-3 h-3 rounded-full"
+                    className="w-2.5 h-2.5 sm:w-3 sm:h-3 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
-                  <span className="text-sm text-zinc-600 dark:text-zinc-400">{item.name}</span>
+                  <span className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400">{item.name}</span>
                 </div>
               ))}
             </div>
@@ -213,38 +216,40 @@ export default function ProgressPage() {
         </Card>
 
         <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-          <CardHeader>
-            <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Weekly Macros</CardTitle>
+          <CardHeader className="px-3 sm:px-6 pb-2">
+            <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Weekly Macros</CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-2 sm:px-6">
             <Tabs defaultValue="protein" className="w-full">
-              <TabsList className="w-full bg-zinc-100 dark:bg-zinc-800/50">
-                <TabsTrigger value="protein" className="flex-1 data-[state=active]:bg-green-500/20 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400">Protein</TabsTrigger>
-                <TabsTrigger value="carbs" className="flex-1 data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">Carbs</TabsTrigger>
-                <TabsTrigger value="fat" className="flex-1 data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400">Fat</TabsTrigger>
+              <TabsList className="w-full bg-zinc-100 dark:bg-zinc-800/50 h-8 sm:h-10">
+                <TabsTrigger value="protein" className="flex-1 text-xs sm:text-sm data-[state=active]:bg-green-500/20 data-[state=active]:text-green-600 dark:data-[state=active]:text-green-400">Protein</TabsTrigger>
+                <TabsTrigger value="carbs" className="flex-1 text-xs sm:text-sm data-[state=active]:bg-blue-500/20 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400">Carbs</TabsTrigger>
+                <TabsTrigger value="fat" className="flex-1 text-xs sm:text-sm data-[state=active]:bg-purple-500/20 data-[state=active]:text-purple-600 dark:data-[state=active]:text-purple-400">Fat</TabsTrigger>
               </TabsList>
               {["protein", "carbs", "fat"].map((macro) => (
-                <TabsContent key={macro} value={macro} className="h-40 mt-4">
+                <TabsContent key={macro} value={macro} className="h-32 sm:h-40 mt-3 sm:mt-4">
                   <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={last7Days}>
+                    <LineChart data={last7Days} margin={{ left: -20, right: 5 }}>
                       <XAxis
                         dataKey="date"
                         stroke="#71717a"
-                        fontSize={12}
+                        fontSize={10}
                         tickLine={false}
                         axisLine={false}
                       />
                       <YAxis
                         stroke="#71717a"
-                        fontSize={12}
+                        fontSize={10}
                         tickLine={false}
                         axisLine={false}
+                        width={35}
                       />
                       <Tooltip
                         contentStyle={{
                           backgroundColor: "var(--tooltip-bg, #18181b)",
                           border: "1px solid var(--tooltip-border, #27272a)",
                           borderRadius: "8px",
+                          fontSize: "12px",
                         }}
                         formatter={(value) => [`${Math.round(value as number)}g`, macro]}
                       />

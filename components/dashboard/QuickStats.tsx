@@ -48,17 +48,17 @@ export function QuickStats({ mealsLogged, remainingCalories, streak }: QuickStat
   ];
 
   return (
-    <div className="grid grid-cols-3 gap-3">
+    <div className="grid grid-cols-3 gap-2 sm:gap-3">
       {stats.map((stat) => (
         <Card
           key={stat.label}
-          className="p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800"
+          className="p-2.5 sm:p-4 bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800"
         >
-          <div className={`w-10 h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-3`}>
-            {stat.icon}
+          <div className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg bg-gradient-to-br ${stat.color} flex items-center justify-center text-white mb-2 sm:mb-3`}>
+            <div className="w-4 h-4 sm:w-5 sm:h-5">{stat.icon}</div>
           </div>
-          <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">{stat.value}</p>
-          <p className="text-sm text-zinc-600 dark:text-zinc-500">{stat.label}</p>
+          <p className="text-lg sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100 truncate">{stat.value}</p>
+          <p className="text-xs sm:text-sm text-zinc-600 dark:text-zinc-500 truncate">{stat.label}</p>
         </Card>
       ))}
     </div>

@@ -15,7 +15,7 @@ export function MacroRing({ label, current, goal, unit = "g", color }: MacroRing
 
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-24 h-24">
+      <div className="relative w-16 h-16 sm:w-24 sm:h-24">
         <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
           <circle
             cx="50"
@@ -40,12 +40,12 @@ export function MacroRing({ label, current, goal, unit = "g", color }: MacroRing
           />
         </svg>
         <div className="absolute inset-0 flex flex-col items-center justify-center">
-          <span className="text-lg font-bold text-zinc-900 dark:text-zinc-100">{Math.round(current)}</span>
-          <span className="text-xs text-zinc-500">{unit}</span>
+          <span className="text-sm sm:text-lg font-bold text-zinc-900 dark:text-zinc-100">{Math.round(current)}</span>
+          <span className="text-[10px] sm:text-xs text-zinc-500">{unit}</span>
         </div>
       </div>
-      <span className="mt-2 text-sm font-medium text-zinc-600 dark:text-zinc-400">{label}</span>
-      <span className="text-xs text-zinc-500 dark:text-zinc-600">of {goal}{unit}</span>
+      <span className="mt-1 sm:mt-2 text-xs sm:text-sm font-medium text-zinc-600 dark:text-zinc-400">{label}</span>
+      <span className="text-[10px] sm:text-xs text-zinc-500 dark:text-zinc-600">of {goal}{unit}</span>
     </div>
   );
 }

@@ -36,7 +36,7 @@ interface FoodScannerProps {
   onSave: (data: FoodAnalysisResult & { imageUrl?: string }) => Promise<void>;
 }
 
-type Step = "capture" | "analyzing" | "review" | "needs-key";
+type Step = "capture" | "confirm" | "analyzing" | "review" | "needs-key";
 
 export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [step, setStep] = useState<Step>("capture");
@@ -47,6 +47,9 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   );
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [context, setContext] = useState<string>("");
+  const [contextExpanded, setContextExpanded] = useState(false);
+  const contextInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -63,21 +66,38 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect device type and enumerate cameras
+  // Detect device type and auto-start camera when dialog opens
   useEffect(() => {
-    const checkMobile = () => {
-      setIsMobile(/iPhone|iPad|iPod|Android/i.test(navigator.userAgent));
-    };
-    checkMobile();
+    const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
+      navigator.userAgent
+    );
+    setIsMobile(isMobileDevice);
 
-    const enumerateCameras = async () => {
+    const initializeCamera = async () => {
       try {
-        // Need to request permission first to get full device info
-        const tempStream = await navigator.mediaDevices.getUserMedia({
-          video: true,
-        });
-        tempStream.getTracks().forEach((track) => track.stop());
+        // Stop any existing stream first
+        if (streamRef.current) {
+          streamRef.current.getTracks().forEach((track) => track.stop());
+          streamRef.current = null;
+        }
 
+        // Start camera with appropriate settings
+        // Mobile: use back camera (environment), Desktop: use default
+        const constraints: MediaStreamConstraints = {
+          video: isMobileDevice
+            ? { facingMode: { ideal: "environment" } }
+            : true,
+        };
+
+        const stream = await navigator.mediaDevices.getUserMedia(constraints);
+        streamRef.current = stream;
+
+        if (videoRef.current) {
+          videoRef.current.srcObject = stream;
+        }
+        setCameraActive(true);
+
+        // Enumerate cameras in background for camera switching feature
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameras = devices.filter(
           (device) => device.kind === "videoinput"
@@ -85,19 +105,35 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         setAvailableCameras(cameras);
         setHasMultipleCameras(cameras.length > 1);
 
-        // Select first camera by default if on desktop
         if (cameras.length > 0 && !selectedCameraId) {
-          setSelectedCameraId(cameras[0].deviceId);
+          // Find the current active camera's deviceId
+          const currentTrack = stream.getVideoTracks()[0];
+          const settings = currentTrack.getSettings();
+          if (settings.deviceId) {
+            setSelectedCameraId(settings.deviceId);
+          } else {
+            setSelectedCameraId(cameras[0].deviceId);
+          }
         }
       } catch (err) {
-        console.error("Failed to enumerate cameras:", err);
+        console.error("Failed to initialize camera:", err);
+        setError("Unable to access camera. Please use file upload instead.");
+        setCameraActive(false);
       }
     };
 
-    if (open) {
-      enumerateCameras();
+    if (open && step === "capture" && !cameraActive && !imageData) {
+      initializeCamera();
     }
-  }, [open, selectedCameraId]);
+
+    // Cleanup when dialog closes
+    return () => {
+      if (!open && streamRef.current) {
+        streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+      }
+    };
+  }, [open, step, cameraActive, imageData, selectedCameraId]);
 
   const resetState = useCallback(() => {
     setStep("capture");
@@ -106,6 +142,8 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     setEditedResult(null);
     setError(null);
     setIsSaving(false);
+    setContext("");
+    setContextExpanded(false);
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -127,13 +165,21 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       // Stop existing stream if any
       if (streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
       }
 
-      const constraints: MediaStreamConstraints = {
-        video: cameraId
-          ? { deviceId: { exact: cameraId } }
-          : { facingMode: mode || facingMode },
-      };
+      let constraints: MediaStreamConstraints;
+
+      if (cameraId) {
+        // Specific camera requested
+        constraints = { video: { deviceId: { exact: cameraId } } };
+      } else if (isMobile) {
+        // Mobile: use facingMode
+        constraints = { video: { facingMode: { ideal: mode || facingMode } } };
+      } else {
+        // Desktop: just use default or first camera
+        constraints = { video: true };
+      }
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
@@ -141,6 +187,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         videoRef.current.srcObject = stream;
       }
       setCameraActive(true);
+      setError(null);
     } catch (err) {
       console.error("Camera error:", err);
       setError("Unable to access camera. Please use file upload instead.");
@@ -182,7 +229,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     }
     setCameraActive(false);
 
-    analyzeImage(dataUrl);
+    setStep("confirm");
   };
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -193,12 +240,12 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
       setImageData(dataUrl);
-      analyzeImage(dataUrl);
+      setStep("confirm");
     };
     reader.readAsDataURL(file);
   };
 
-  const analyzeImage = async (image: string) => {
+  const analyzeImage = async (image: string, userContext?: string) => {
     setStep("analyzing");
     setError(null);
 
@@ -206,7 +253,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image }),
+        body: JSON.stringify({ image, context: userContext || undefined }),
       });
 
       const data = await response.json();
@@ -282,6 +329,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         <DialogHeader>
           <DialogTitle className="text-zinc-900 dark:text-zinc-100">
             {step === "capture" && "Scan Your Food"}
+            {step === "confirm" && "Ready to Analyze"}
             {step === "analyzing" && "Analyzing..."}
             {step === "review" && "Review & Save"}
             {step === "needs-key" && "API Key Required"}
@@ -510,6 +558,121 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                 />
               </div>
             )}
+          </div>
+        )}
+
+        {step === "confirm" && imageData && (
+          <div className="space-y-4">
+            <div className="relative aspect-[4/3] bg-black rounded-lg overflow-hidden">
+              <Image
+                src={imageData}
+                alt="Food preview"
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            </div>
+
+            {/* Context input - subtle expandable */}
+            <div className="space-y-2">
+              {!contextExpanded ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setContextExpanded(true);
+                    setTimeout(() => contextInputRef.current?.focus(), 50);
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    className="w-3.5 h-3.5"
+                  >
+                    <path d="M12 5v14M5 12h14" />
+                  </svg>
+                  Add context
+                </button>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Input
+                    ref={contextInputRef}
+                    value={context}
+                    onChange={(e) => setContext(e.target.value)}
+                    placeholder="e.g. half portion, no sauce, 2 servings..."
+                    className="flex-1 h-9 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        analyzeImage(imageData, context.trim());
+                      }
+                    }}
+                  />
+                  {context && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setContext("");
+                        setContextExpanded(false);
+                      }}
+                      className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-4 h-4"
+                      >
+                        <path d="M18 6 6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                </div>
+              )}
+              {contextExpanded && (
+                <p className="text-[11px] text-zinc-500 dark:text-zinc-500">
+                  Help AI estimate more accurately
+                </p>
+              )}
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1 border-zinc-300 dark:border-zinc-700 text-zinc-700 dark:text-zinc-300"
+                onClick={resetState}
+              >
+                Retake
+              </Button>
+              <Button
+                className="flex-1 bg-gradient-to-r from-amber-500 to-orange-600"
+                onClick={() => analyzeImage(imageData, context.trim())}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-4 h-4 mr-2"
+                >
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+                Analyze
+              </Button>
+            </div>
           </div>
         )}
 

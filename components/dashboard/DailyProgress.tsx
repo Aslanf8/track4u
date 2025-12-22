@@ -15,13 +15,13 @@ export function DailyProgress({ calories, protein, carbs, fat }: DailyProgressPr
 
   return (
     <Card className="bg-white/50 dark:bg-zinc-900/50 border-zinc-200 dark:border-zinc-800">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-lg text-zinc-900 dark:text-zinc-100">Today&apos;s Progress</CardTitle>
+      <CardHeader className="pb-2 px-3 sm:px-6">
+        <CardTitle className="text-base sm:text-lg text-zinc-900 dark:text-zinc-100">Today&apos;s Progress</CardTitle>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-3 sm:px-6">
         {/* Main calorie ring */}
-        <div className="flex justify-center mb-6">
-          <div className="relative w-40 h-40">
+        <div className="flex justify-center mb-4 sm:mb-6">
+          <div className="relative w-32 h-32 sm:w-40 sm:h-40">
             <svg className="w-full h-full -rotate-90" viewBox="0 0 100 100">
               <circle
                 cx="50"
@@ -52,14 +52,14 @@ export function DailyProgress({ calories, protein, carbs, fat }: DailyProgressPr
               </defs>
             </svg>
             <div className="absolute inset-0 flex flex-col items-center justify-center">
-              <span className="text-3xl font-bold text-zinc-900 dark:text-zinc-100">{Math.round(calories.current)}</span>
-              <span className="text-sm text-zinc-500">of {calories.goal} cal</span>
+              <span className="text-2xl sm:text-3xl font-bold text-zinc-900 dark:text-zinc-100">{Math.round(calories.current)}</span>
+              <span className="text-xs sm:text-sm text-zinc-500">of {calories.goal} cal</span>
             </div>
           </div>
         </div>
 
         {/* Macro rings */}
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-3 gap-2 sm:gap-4">
           <MacroRing
             label="Protein"
             current={protein.current}

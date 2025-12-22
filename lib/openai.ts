@@ -114,14 +114,20 @@ export function categorizeOpenAIError(error: unknown): OpenAIError {
 
 export async function analyzeFoodImage(
   imageBase64: string,
-  userId: string
+  userId: string,
+  context?: string
 ): Promise<FoodAnalysisResult> {
   // Get user's OpenAI client - throws NoApiKeyError if user hasn't added their key
   const { client } = await getOpenAIClient(userId);
 
+  // Build prompt with optional context
+  const contextLine = context?.trim() 
+    ? `\n\nUser context: "${context.trim()}"`
+    : "";
+
   try {
     const response = await client.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "gpt-5.2",
       messages: [
         {
           role: "user",
@@ -140,7 +146,7 @@ export async function analyzeFoodImage(
   "confidence": "low" or "medium" or "high"
 }
 
-If there are multiple food items, estimate totals for the entire meal. Be as accurate as possible with portion sizes visible in the image.`,
+If there are multiple food items, estimate totals for the entire meal. Be as accurate as possible with portion sizes visible in the image.${contextLine}`,
             },
             {
               type: "image_url",
@@ -152,7 +158,7 @@ If there are multiple food items, estimate totals for the entire meal. Be as acc
           ],
         },
       ],
-      max_tokens: 500,
+      max_completion_tokens: 500,
     });
 
     const text = response.choices[0]?.message?.content || "";

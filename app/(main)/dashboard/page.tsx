@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { DailyProgress } from "@/components/dashboard/DailyProgress";
 import { QuickStats } from "@/components/dashboard/QuickStats";
 import { FoodEntryCard } from "@/components/food/FoodEntryCard";
+import { FoodEntryDialog } from "@/components/food/FoodEntryDialog";
 import { GoalsWizard } from "@/components/onboarding/GoalsWizard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
@@ -28,6 +29,8 @@ export default function DashboardPage() {
   const [goals, setGoals] = useState<Goals | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState<FoodEntry | null>(null);
+  const [dialogOpen, setDialogOpen] = useState(false);
 
   const fetchData = useCallback(async () => {
     const today = new Date();
@@ -76,7 +79,19 @@ export default function DashboardPage() {
 
     if (response.ok) {
       setEntries(entries.filter((e) => e.id !== id));
+      toast.success("Entry deleted");
     }
+  };
+
+  const handleEntryClick = (entry: FoodEntry) => {
+    setSelectedEntry(entry);
+    setDialogOpen(true);
+  };
+
+  const handleEntryUpdate = (updatedEntry: FoodEntry) => {
+    setEntries(
+      entries.map((e) => (e.id === updatedEntry.id ? updatedEntry : e))
+    );
   };
 
   const handleOnboardingComplete = async (newGoals: Goals) => {
@@ -101,21 +116,21 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="max-w-4xl mx-auto space-y-6">
-        <Skeleton className="h-8 w-48 bg-zinc-200 dark:bg-zinc-800" />
-        <Skeleton className="h-80 w-full bg-zinc-200 dark:bg-zinc-800" />
-        <div className="grid grid-cols-3 gap-3">
-          <Skeleton className="h-32 bg-zinc-200 dark:bg-zinc-800" />
-          <Skeleton className="h-32 bg-zinc-200 dark:bg-zinc-800" />
-          <Skeleton className="h-32 bg-zinc-200 dark:bg-zinc-800" />
+      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1">
+        <Skeleton className="h-7 sm:h-8 w-36 sm:w-48 bg-zinc-200 dark:bg-zinc-800" />
+        <Skeleton className="h-64 sm:h-80 w-full bg-zinc-200 dark:bg-zinc-800" />
+        <div className="grid grid-cols-1 xs:grid-cols-3 gap-2 sm:gap-3">
+          <Skeleton className="h-24 sm:h-32 bg-zinc-200 dark:bg-zinc-800" />
+          <Skeleton className="h-24 sm:h-32 bg-zinc-200 dark:bg-zinc-800" />
+          <Skeleton className="h-24 sm:h-32 bg-zinc-200 dark:bg-zinc-800" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <h1 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1">
+      <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
         Dashboard
       </h1>
 
@@ -135,12 +150,12 @@ export default function DashboardPage() {
         streak={1}
       />
 
-      <div className="space-y-3">
-        <h2 className="text-lg font-semibold text-zinc-900 dark:text-zinc-100">
+      <div className="space-y-2 sm:space-y-3">
+        <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100">
           Today&apos;s Meals
         </h2>
         {entries.length === 0 ? (
-          <div className="text-center py-12 text-zinc-500">
+          <div className="text-center py-8 sm:py-12 text-zinc-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
@@ -149,7 +164,7 @@ export default function DashboardPage() {
               strokeWidth="2"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="w-12 h-12 mx-auto mb-4 opacity-50"
+              className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50"
             >
               <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
               <path d="M8.5 8.5v.01" />
@@ -158,18 +173,19 @@ export default function DashboardPage() {
               <path d="M11 17v.01" />
               <path d="M7 14v.01" />
             </svg>
-            <p>No meals logged yet today</p>
-            <p className="text-sm mt-1">
+            <p className="text-sm sm:text-base">No meals logged yet today</p>
+            <p className="text-xs sm:text-sm mt-1">
               Tap the camera button to scan your first meal!
             </p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2 sm:space-y-3">
             {entries.map((entry) => (
               <FoodEntryCard
                 key={entry.id}
                 entry={entry}
                 onDelete={handleDelete}
+                onClick={handleEntryClick}
               />
             ))}
           </div>
@@ -179,6 +195,14 @@ export default function DashboardPage() {
       <GoalsWizard
         open={showOnboarding}
         onComplete={handleOnboardingComplete}
+      />
+
+      <FoodEntryDialog
+        entry={selectedEntry}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+        onUpdate={handleEntryUpdate}
+        onDelete={handleDelete}
       />
     </div>
   );
