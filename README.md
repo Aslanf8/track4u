@@ -81,14 +81,16 @@ Browse past meals grouped by date, search by name, and track patterns.
 - Quick search functionality
 - Full edit/delete capabilities
 
-### 🔐 Security
+### 🔐 Security & Authentication
 
-Your data stays yours.
+Your data stays yours. Sign in how you want.
 
+- **Multiple sign-in options**: Email/password, Google, or Apple
 - API keys encrypted with AES-256-GCM
 - Only last 4 characters visible in UI
 - No API key logging or transmission
 - BYOK model — your billing stays between you and the AI provider
+- Full account deletion with one click
 
 ---
 
@@ -158,27 +160,56 @@ Open [http://localhost:3000](http://localhost:3000) to see the app.
 AUTH_SECRET=your-auth-secret
 
 # Turso database credentials
-DATABASE_URL=libsql://your-database.turso.io
-DATABASE_AUTH_TOKEN=your-turso-auth-token
+TURSO_DATABASE_URL=libsql://your-database.turso.io
+TURSO_AUTH_TOKEN=your-turso-auth-token
 
 # Encryption key for API key storage
 ENCRYPTION_SECRET=your-32-char-secret-key
+
+# Google OAuth (optional)
+GOOGLE_CLIENT_ID=your-google-client-id
+GOOGLE_CLIENT_SECRET=your-google-client-secret
+
+# Apple OAuth (optional - production only)
+APPLE_ID=com.yourapp.web
+APPLE_SECRET=your-apple-jwt-secret
+APPLE_TEAM_ID=your-team-id
+APPLE_KEY_ID=your-key-id
+APPLE_PRIVATE_KEY="-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----"
 ```
+
+#### Setting Up OAuth Providers
+
+**Google OAuth:**
+
+1. Go to [Google Cloud Console](https://console.cloud.google.com/apis/credentials)
+2. Create OAuth 2.0 Client ID (Web application)
+3. Add redirect URI: `https://yourdomain.com/api/auth/callback/google`
+
+**Apple OAuth:**
+
+1. Go to [Apple Developer Console](https://developer.apple.com/account/resources/identifiers/list)
+2. Create App ID with "Sign in with Apple" capability
+3. Create Services ID for web authentication
+4. Create Key for Sign in with Apple
+5. Generate client secret: `npx tsx scripts/generate-apple-secret.ts`
+
+> **Note:** Apple Sign-In only works in production (HTTPS required). Google works locally.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                    |
-| ---------- | ----------------------------- |
-| Framework  | Next.js 16 (App Router)       |
-| Language   | TypeScript (strict)           |
-| Styling    | Tailwind CSS + shadcn/ui      |
-| Database   | Turso (SQLite) + Drizzle ORM  |
-| Auth       | NextAuth.js (Credentials)     |
-| AI         | Vision AI (provider-agnostic) |
-| Charts     | Recharts                      |
-| Encryption | Node.js crypto (AES-256-GCM)  |
+| Layer      | Technology                            |
+| ---------- | ------------------------------------- |
+| Framework  | Next.js 16 (App Router)               |
+| Language   | TypeScript (strict)                   |
+| Styling    | Tailwind CSS + shadcn/ui              |
+| Database   | Turso (SQLite) + Drizzle ORM          |
+| Auth       | NextAuth.js v5 (Google, Apple, Email) |
+| AI         | Vision AI (provider-agnostic)         |
+| Charts     | Recharts                              |
+| Encryption | Node.js crypto (AES-256-GCM)          |
 
 ### Project Structure
 
@@ -241,6 +272,9 @@ npm run start        # Start production server
 npm run db:push      # Push schema to database
 npm run db:studio    # Open Drizzle Studio
 npm run lint         # Run ESLint
+
+# Apple OAuth secret generation (expires every 180 days)
+npx tsx scripts/generate-apple-secret.ts
 ```
 
 ---

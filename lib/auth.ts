@@ -1,5 +1,7 @@
 import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
+import Google from "next-auth/providers/google";
+import Apple from "next-auth/providers/apple";
 import { compare } from "bcryptjs";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
@@ -7,6 +9,17 @@ import { eq } from "drizzle-orm";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   providers: [
+    Google({
+      clientId: process.env.GOOGLE_CLIENT_ID!,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    }),
+    Apple({
+      clientId: process.env.APPLE_ID!,
+      clientSecret: process.env.APPLE_SECRET!,
+      client: {
+        token_endpoint_auth_method: "client_secret_post",
+      },
+    }),
     Credentials({
       credentials: {
         email: { label: "Email", type: "email" },
@@ -34,6 +47,12 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             return null;
           }
 
+          // Check if user has a password (OAuth users won't)
+          if (!user.passwordHash) {
+            console.log("User signed up with OAuth, no password set");
+            return null;
+          }
+
           console.log("Found user, comparing password...");
           const passwordMatch = await compare(password, user.passwordHash);
           
@@ -56,9 +75,53 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
     }),
   ],
   callbacks: {
-    async jwt({ token, user }) {
+    async signIn({ user, account }) {
+      // Handle OAuth sign-ins (Google, Apple)
+      if (account?.provider === "google" || account?.provider === "apple") {
+        try {
+          const email = user.email;
+          if (!email) return false;
+
+          // Check if user already exists
+          const existingUser = await db.query.users.findFirst({
+            where: eq(users.email, email),
+          });
+
+          if (!existingUser) {
+            // Create new user for OAuth sign-in
+            await db.insert(users).values({
+              id: crypto.randomUUID(),
+              email: email,
+              name: user.name || email.split("@")[0],
+              passwordHash: null, // OAuth users have no password
+            });
+            console.log(`Created new ${account.provider} user:`, email);
+          } else {
+            console.log(`Existing user signing in with ${account.provider}:`, email);
+          }
+
+          return true;
+        } catch (error) {
+          console.error("Error in signIn callback:", error);
+          return false;
+        }
+      }
+
+      return true; // Allow credentials sign-in to proceed
+    },
+    async jwt({ token, user, account }) {
       if (user) {
-        token.id = user.id;
+        // For OAuth users, we need to get the DB user ID
+        if ((account?.provider === "google" || account?.provider === "apple") && user.email) {
+          const dbUser = await db.query.users.findFirst({
+            where: eq(users.email, user.email),
+          });
+          if (dbUser) {
+            token.id = dbUser.id;
+          }
+        } else {
+          token.id = user.id;
+        }
       }
       return token;
     },

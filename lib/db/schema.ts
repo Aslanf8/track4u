@@ -4,7 +4,7 @@ import { relations } from "drizzle-orm";
 export const users = sqliteTable("users", {
   id: text("id").primaryKey(),
   email: text("email").notNull().unique(),
-  passwordHash: text("password_hash").notNull(),
+  passwordHash: text("password_hash"), // Nullable for OAuth users
   name: text("name").notNull(),
   // Encrypted OpenAI API key (never stored in plaintext)
   encryptedApiKey: text("encrypted_api_key"),
