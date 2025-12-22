@@ -24,8 +24,6 @@ export async function DELETE() {
     // 3. Delete the user
     await db.delete(users).where(eq(users.id, userId));
 
-    console.log(`Account deleted for user: ${userId}`);
-
     return NextResponse.json({ success: true });
   } catch (error) {
     console.error("Error deleting account:", error);

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -53,6 +53,12 @@ export function FoodEntryDialog({
     description: "",
   });
 
+  // Reanalyze state
+  const [reanalyzeExpanded, setReanalyzeExpanded] = useState(false);
+  const [reanalyzeContext, setReanalyzeContext] = useState("");
+  const [isReanalyzing, setIsReanalyzing] = useState(false);
+  const reanalyzeInputRef = useRef<HTMLInputElement>(null);
+
   // Populate form when entry changes or dialog opens
   useEffect(() => {
     if (entry && open) {
@@ -66,14 +72,66 @@ export function FoodEntryDialog({
         description: entry.description ?? "",
       });
       setIsEditing(false);
+      setReanalyzeExpanded(false);
+      setReanalyzeContext("");
     }
   }, [entry, open]);
 
   const handleOpenChange = (newOpen: boolean) => {
     if (!newOpen) {
       setIsEditing(false);
+      setReanalyzeExpanded(false);
+      setReanalyzeContext("");
     }
     onOpenChange(newOpen);
+  };
+
+  const handleReanalyze = async () => {
+    if (!entry?.imageUrl) return;
+
+    setIsReanalyzing(true);
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: entry.imageUrl,
+          context: reanalyzeContext.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        if (data.code === "NO_API_KEY") {
+          toast.error("Please add your OpenAI API key in Settings");
+          return;
+        }
+        throw new Error(data.error || "Failed to reanalyze");
+      }
+
+      // Update form data with new analysis
+      setFormData({
+        name: data.name,
+        calories: data.calories,
+        protein: data.protein,
+        carbs: data.carbs,
+        fat: data.fat,
+        fiber: data.fiber ?? 0,
+        description: data.description ?? "",
+      });
+
+      // Switch to edit mode so user can review and save
+      setIsEditing(true);
+      setReanalyzeExpanded(false);
+      setReanalyzeContext("");
+      toast.success("Reanalysis complete - review and save changes");
+    } catch (err) {
+      console.error("Reanalyze error:", err);
+      toast.error(err instanceof Error ? err.message : "Failed to reanalyze");
+    } finally {
+      setIsReanalyzing(false);
+    }
   };
 
   const handleSave = async () => {
@@ -120,7 +178,7 @@ export function FoodEntryDialog({
 
         {/* Image */}
         {entry.imageUrl && (
-          <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
+          <div className="relative w-full h-32 sm:h-48 rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
             <Image
               src={entry.imageUrl}
               alt={entry.name}
@@ -149,47 +207,177 @@ export function FoodEntryDialog({
               </p>
             )}
 
-            {/* Nutrition Grid */}
+            {/* Nutrition Grid - Monochrome with dot indicators */}
             <div className="grid grid-cols-2 gap-3">
-              <div className="bg-amber-500/10 dark:bg-amber-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-amber-600 dark:text-amber-400">
+              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   {entry.calories}
                 </p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">
+                <p className="text-xs text-zinc-500 uppercase tracking-wide flex items-center justify-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
                   Calories
                 </p>
               </div>
-              <div className="bg-emerald-500/10 dark:bg-emerald-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-emerald-600 dark:text-emerald-400">
+              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   {entry.protein}g
                 </p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">
+                <p className="text-xs text-zinc-500 uppercase tracking-wide flex items-center justify-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Protein
                 </p>
               </div>
-              <div className="bg-sky-500/10 dark:bg-sky-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-sky-600 dark:text-sky-400">
+              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   {entry.carbs}g
                 </p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">
+                <p className="text-xs text-zinc-500 uppercase tracking-wide flex items-center justify-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
                   Carbs
                 </p>
               </div>
-              <div className="bg-rose-500/10 dark:bg-rose-500/20 rounded-lg p-3 text-center">
-                <p className="text-2xl font-bold text-rose-600 dark:text-rose-400">
+              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
+                <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
                   {entry.fat}g
                 </p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wide">
+                <p className="text-xs text-zinc-500 uppercase tracking-wide flex items-center justify-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                   Fat
                 </p>
               </div>
             </div>
 
             {entry.fiber !== null && entry.fiber !== undefined && entry.fiber > 0 && (
-              <div className="bg-violet-500/10 dark:bg-violet-500/20 rounded-lg p-3 text-center">
-                <p className="text-lg font-bold text-violet-600 dark:text-violet-400">
-                  {entry.fiber}g Fiber
+              <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
+                <p className="text-lg font-bold text-zinc-900 dark:text-zinc-100">
+                  {entry.fiber}g
                 </p>
+                <p className="text-xs text-zinc-500 uppercase tracking-wide flex items-center justify-center gap-1.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-violet-500" />
+                  Fiber
+                </p>
+              </div>
+            )}
+
+            {/* Reanalyze with AI - only show if entry has image */}
+            {entry.imageUrl && (
+              <div className="pt-2">
+                {!reanalyzeExpanded ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setReanalyzeExpanded(true);
+                      setTimeout(() => reanalyzeInputRef.current?.focus(), 50);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-3.5 h-3.5"
+                    >
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                      <path d="M16 16h5v5" />
+                    </svg>
+                    Reanalyze with AI
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        ref={reanalyzeInputRef}
+                        value={reanalyzeContext}
+                        onChange={(e) => setReanalyzeContext(e.target.value)}
+                        placeholder="e.g. half portion, no sauce, 2 servings..."
+                        className="flex-1 h-9 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                        disabled={isReanalyzing}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleReanalyze();
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleReanalyze}
+                        disabled={isReanalyzing}
+                        className="h-9 px-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                      >
+                        {isReanalyzing ? (
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
+                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                            <path d="M16 16h5v5" />
+                          </svg>
+                        )}
+                      </Button>
+                      {!isReanalyzing && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setReanalyzeContext("");
+                            setReanalyzeExpanded(false);
+                          }}
+                          className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
+                            <path d="M18 6 6 18M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                      Add context to refine the analysis
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </div>

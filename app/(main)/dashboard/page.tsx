@@ -116,20 +116,20 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1">
+      <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-0.5 sm:px-1">
         <Skeleton className="h-7 sm:h-8 w-36 sm:w-48 bg-zinc-200 dark:bg-zinc-800" />
-        <Skeleton className="h-64 sm:h-80 w-full bg-zinc-200 dark:bg-zinc-800" />
-        <div className="grid grid-cols-1 xs:grid-cols-3 gap-2 sm:gap-3">
-          <Skeleton className="h-24 sm:h-32 bg-zinc-200 dark:bg-zinc-800" />
-          <Skeleton className="h-24 sm:h-32 bg-zinc-200 dark:bg-zinc-800" />
-          <Skeleton className="h-24 sm:h-32 bg-zinc-200 dark:bg-zinc-800" />
+        <Skeleton className="h-64 sm:h-80 w-full bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+        <div className="grid grid-cols-3 gap-2 sm:gap-3">
+          <Skeleton className="h-20 sm:h-28 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+          <Skeleton className="h-20 sm:h-28 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
+          <Skeleton className="h-20 sm:h-28 bg-zinc-200 dark:bg-zinc-800 rounded-xl" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-1">
+    <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-0.5 sm:px-1">
       <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
         Dashboard
       </h1>
@@ -151,20 +151,28 @@ export default function DashboardPage() {
       />
 
       <div className="space-y-2 sm:space-y-3">
-        <h2 className="text-base sm:text-lg font-semibold text-zinc-900 dark:text-zinc-100">
-          Today&apos;s Meals
-        </h2>
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100">
+            Today&apos;s Meals
+          </h2>
+          {entries.length > 0 && (
+            <span className="text-[10px] sm:text-xs text-zinc-400 dark:text-zinc-500">
+              {entries.length} {entries.length === 1 ? "meal" : "meals"}
+            </span>
+          )}
+        </div>
+
         {entries.length === 0 ? (
-          <div className="text-center py-8 sm:py-12 text-zinc-500">
+          <div className="text-center py-10 sm:py-14 text-zinc-500">
             <svg
               xmlns="http://www.w3.org/2000/svg"
               viewBox="0 0 24 24"
               fill="none"
               stroke="currentColor"
-              strokeWidth="2"
+              strokeWidth="1.5"
               strokeLinecap="round"
               strokeLinejoin="round"
-              className="w-10 h-10 sm:w-12 sm:h-12 mx-auto mb-3 sm:mb-4 opacity-50"
+              className="w-12 h-12 sm:w-14 sm:h-14 mx-auto mb-4 opacity-40"
             >
               <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5" />
               <path d="M8.5 8.5v.01" />
@@ -173,13 +181,15 @@ export default function DashboardPage() {
               <path d="M11 17v.01" />
               <path d="M7 14v.01" />
             </svg>
-            <p className="text-sm sm:text-base">No meals logged yet today</p>
-            <p className="text-xs sm:text-sm mt-1">
-              Tap the camera button to scan your first meal!
+            <p className="text-sm sm:text-base font-medium">
+              No meals logged yet
+            </p>
+            <p className="text-xs sm:text-sm text-zinc-400 mt-1">
+              Tap the camera to scan your first meal!
             </p>
           </div>
         ) : (
-          <div className="space-y-2 sm:space-y-3">
+          <div className="space-y-2">
             {entries.map((entry) => (
               <FoodEntryCard
                 key={entry.id}

@@ -50,6 +50,12 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [context, setContext] = useState<string>("");
   const [contextExpanded, setContextExpanded] = useState(false);
   const contextInputRef = useRef<HTMLInputElement>(null);
+
+  // Refine state (for review step)
+  const [refineExpanded, setRefineExpanded] = useState(false);
+  const [refineContext, setRefineContext] = useState("");
+  const [isRefining, setIsRefining] = useState(false);
+  const refineInputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
@@ -156,6 +162,8 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     setIsSaving(false);
     setContext("");
     setContextExpanded(false);
+    setRefineExpanded(false);
+    setRefineContext("");
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
       streamRef.current = null;
@@ -298,6 +306,9 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       setResult(data);
       setEditedResult(data);
       setStep("review");
+      // Reset refine state when new analysis completes
+      setRefineExpanded(false);
+      setRefineContext("");
     } catch (err) {
       console.error("Analysis error:", err);
       setError(
@@ -306,6 +317,44 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
           : "Failed to analyze the image. Please try again."
       );
       setStep("capture");
+    }
+  };
+
+  const handleRefine = async () => {
+    if (!imageData) return;
+
+    setIsRefining(true);
+    setError(null);
+
+    try {
+      const response = await fetch("/api/analyze", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          image: imageData,
+          context: refineContext.trim() || undefined,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Failed to refine analysis");
+      }
+
+      setResult(data);
+      setEditedResult(data);
+      setRefineExpanded(false);
+      setRefineContext("");
+    } catch (err) {
+      console.error("Refine error:", err);
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to refine. Please try again."
+      );
+    } finally {
+      setIsRefining(false);
     }
   };
 
@@ -904,6 +953,126 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                   </div>
                 </Card>
               )}
+
+              {/* Refine with AI */}
+              <div className="pt-1">
+                {!refineExpanded ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setRefineExpanded(true);
+                      setTimeout(() => refineInputRef.current?.focus(), 50);
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium rounded-full bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-400 hover:bg-zinc-200 dark:hover:bg-zinc-700 transition-colors"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      className="w-3.5 h-3.5"
+                    >
+                      <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                      <path d="M3 3v5h5" />
+                      <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                      <path d="M16 16h5v5" />
+                    </svg>
+                    Refine with AI
+                  </button>
+                ) : (
+                  <div className="space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Input
+                        ref={refineInputRef}
+                        value={refineContext}
+                        onChange={(e) => setRefineContext(e.target.value)}
+                        placeholder="e.g. half portion, no sauce, 2 servings..."
+                        className="flex-1 h-9 text-sm bg-zinc-100/50 dark:bg-zinc-800/50 border-zinc-300 dark:border-zinc-700 text-zinc-900 dark:text-zinc-100 placeholder:text-zinc-400"
+                        disabled={isRefining}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            e.preventDefault();
+                            handleRefine();
+                          }
+                        }}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={handleRefine}
+                        disabled={isRefining}
+                        className="h-9 px-3 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700"
+                      >
+                        {isRefining ? (
+                          <svg
+                            className="animate-spin h-4 w-4"
+                            viewBox="0 0 24 24"
+                          >
+                            <circle
+                              className="opacity-25"
+                              cx="12"
+                              cy="12"
+                              r="10"
+                              stroke="currentColor"
+                              strokeWidth="4"
+                              fill="none"
+                            />
+                            <path
+                              className="opacity-75"
+                              fill="currentColor"
+                              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                            />
+                          </svg>
+                        ) : (
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
+                            <path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
+                            <path d="M3 3v5h5" />
+                            <path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16" />
+                            <path d="M16 16h5v5" />
+                          </svg>
+                        )}
+                      </Button>
+                      {!isRefining && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setRefineContext("");
+                            setRefineExpanded(false);
+                          }}
+                          className="p-1.5 rounded-md hover:bg-zinc-200 dark:hover:bg-zinc-700 text-zinc-500"
+                        >
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            viewBox="0 0 24 24"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="2"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className="w-4 h-4"
+                          >
+                            <path d="M18 6 6 18M6 6l12 12" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                    <p className="text-[11px] text-zinc-500">
+                      Add context to refine the analysis
+                    </p>
+                  </div>
+                )}
+              </div>
             </div>
 
             <div className="flex gap-2 pt-2">

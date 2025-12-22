@@ -26,13 +26,10 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         password: { label: "Password", type: "password" },
       },
       async authorize(credentials) {
-        console.log("Authorize called with credentials:", JSON.stringify(credentials));
-        
         const email = credentials?.email as string | undefined;
         const password = credentials?.password as string | undefined;
 
         if (!email || !password) {
-          console.log("Missing email or password");
           return null;
         }
 
@@ -43,25 +40,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           });
 
           if (!user) {
-            console.log("User not found");
             return null;
           }
 
           // Check if user has a password (OAuth users won't)
           if (!user.passwordHash) {
-            console.log("User signed up with OAuth, no password set");
             return null;
           }
 
-          console.log("Found user, comparing password...");
           const passwordMatch = await compare(password, user.passwordHash);
-          
+
           if (!passwordMatch) {
-            console.log("Password mismatch");
             return null;
           }
 
-          console.log("Auth successful!");
           return {
             id: user.id,
             email: user.email,
@@ -95,9 +87,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
               name: user.name || email.split("@")[0],
               passwordHash: null, // OAuth users have no password
             });
-            console.log(`Created new ${account.provider} user:`, email);
-          } else {
-            console.log(`Existing user signing in with ${account.provider}:`, email);
           }
 
           return true;
