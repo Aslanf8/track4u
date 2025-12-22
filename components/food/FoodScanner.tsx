@@ -66,13 +66,16 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [hasMultipleCameras, setHasMultipleCameras] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
 
-  // Detect device type and auto-start camera when dialog opens
+  // Detect device type on mount
   useEffect(() => {
     const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
       navigator.userAgent
     );
     setIsMobile(isMobileDevice);
+  }, []);
 
+  // Auto-start camera when dialog opens
+  useEffect(() => {
     const initializeCamera = async () => {
       try {
         // Stop any existing stream first
@@ -80,6 +83,10 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
           streamRef.current.getTracks().forEach((track) => track.stop());
           streamRef.current = null;
         }
+
+        const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
+          navigator.userAgent
+        );
 
         // Start camera with appropriate settings
         // Mobile: use back camera (environment), Desktop: use default
@@ -92,9 +99,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         const stream = await navigator.mediaDevices.getUserMedia(constraints);
         streamRef.current = stream;
 
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+        // Set cameraActive first so video element renders
         setCameraActive(true);
 
         // Enumerate cameras in background for camera switching feature
@@ -105,7 +110,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         setAvailableCameras(cameras);
         setHasMultipleCameras(cameras.length > 1);
 
-        if (cameras.length > 0 && !selectedCameraId) {
+        if (cameras.length > 0) {
           // Find the current active camera's deviceId
           const currentTrack = stream.getVideoTracks()[0];
           const settings = currentTrack.getSettings();
@@ -133,7 +138,14 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         streamRef.current = null;
       }
     };
-  }, [open, step, cameraActive, imageData, selectedCameraId]);
+  }, [open, step, cameraActive, imageData]);
+
+  // Assign stream to video element once it's rendered
+  useEffect(() => {
+    if (cameraActive && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [cameraActive]);
 
   const resetState = useCallback(() => {
     setStep("capture");
