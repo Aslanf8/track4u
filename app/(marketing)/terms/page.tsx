@@ -248,7 +248,7 @@ export default function TermsPage() {
               clarity.
             </p>
             <p className="text-sm text-stone-500 mt-6">
-              Last updated: December 2024
+              Last updated: December 2025
             </p>
           </div>
         </div>
