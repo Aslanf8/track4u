@@ -56,15 +56,13 @@ export default function HistoryPage() {
   const [selectedEntry, setSelectedEntry] = useState<FoodEntry | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const loadEntries = async () => {
-    const response = await fetch("/api/food");
-    const data = await response.json();
-    setEntries(data);
-    setIsLoading(false);
-  };
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => {
+    const loadEntries = async () => {
+      const response = await fetch("/api/food");
+      const data = await response.json();
+      setEntries(data);
+      setIsLoading(false);
+    };
     loadEntries();
   }, []);
 
