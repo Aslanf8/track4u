@@ -4,11 +4,12 @@ import { useState } from "react";
 import { FloatingCameraButton } from "./FloatingCameraButton";
 import { FoodScanner } from "@/components/food/FoodScanner";
 import { toast } from "sonner";
-import { useRouter } from "next/navigation";
+import { useFoodEntries } from "@/lib/hooks/use-food-entries";
+import type { FoodEntry } from "@/lib/db/schema";
 
 export function GlobalScanner() {
   const [scannerOpen, setScannerOpen] = useState(false);
-  const router = useRouter();
+  const { addEntry, triggerRefresh } = useFoodEntries();
 
   const handleSave = async (data: {
     name: string;
@@ -30,8 +31,15 @@ export function GlobalScanner() {
       throw new Error("Failed to save entry");
     }
 
+    const savedEntry: FoodEntry = await response.json();
+    
+    // Optimistically add the entry to the shared state
+    addEntry(savedEntry);
+    
+    // Also trigger a full refresh to ensure consistency
+    triggerRefresh();
+
     toast.success("Meal logged!");
-    router.refresh();
   };
 
   return (
@@ -45,4 +53,3 @@ export function GlobalScanner() {
     </>
   );
 }
-

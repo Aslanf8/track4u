@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { FoodEntryCard } from "@/components/food/FoodEntryCard";
 import { FoodEntryDialog } from "@/components/food/FoodEntryDialog";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { format, parseISO, isToday, isYesterday, startOfDay } from "date-fns";
+import { useHistoryEntries } from "@/lib/hooks/use-food-entries";
 import type { FoodEntry } from "@/lib/db/schema";
 
 interface DaySummaryProps {
@@ -50,21 +51,10 @@ function DaySummary({ totals }: DaySummaryProps) {
 }
 
 export default function HistoryPage() {
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const { entries, isLoading, updateEntry, removeEntry } = useHistoryEntries();
   const [search, setSearch] = useState("");
   const [selectedEntry, setSelectedEntry] = useState<FoodEntry | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-
-  useEffect(() => {
-    const loadEntries = async () => {
-      const response = await fetch("/api/food");
-      const data = await response.json();
-      setEntries(data);
-      setIsLoading(false);
-    };
-    loadEntries();
-  }, []);
 
   const handleDelete = async (id: string) => {
     const response = await fetch(`/api/food/${id}`, {
@@ -72,7 +62,7 @@ export default function HistoryPage() {
     });
 
     if (response.ok) {
-      setEntries(entries.filter((e) => e.id !== id));
+      removeEntry(id);
       toast.success("Entry deleted");
     }
   };
@@ -83,24 +73,30 @@ export default function HistoryPage() {
   };
 
   const handleEntryUpdate = (updatedEntry: FoodEntry) => {
-    setEntries(
-      entries.map((e) => (e.id === updatedEntry.id ? updatedEntry : e))
-    );
+    updateEntry(updatedEntry);
   };
 
-  const filteredEntries = entries.filter((entry) =>
-    entry.name.toLowerCase().includes(search.toLowerCase())
+  const filteredEntries = useMemo(
+    () =>
+      entries.filter((entry) =>
+        entry.name.toLowerCase().includes(search.toLowerCase())
+      ),
+    [entries, search]
   );
 
   // Group entries by date
-  const groupedEntries = filteredEntries.reduce((groups, entry) => {
-    const date = startOfDay(new Date(entry.consumedAt)).toISOString();
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(entry);
-    return groups;
-  }, {} as Record<string, FoodEntry[]>);
+  const groupedEntries = useMemo(
+    () =>
+      filteredEntries.reduce((groups, entry) => {
+        const date = startOfDay(new Date(entry.consumedAt)).toISOString();
+        if (!groups[date]) {
+          groups[date] = [];
+        }
+        groups[date].push(entry);
+        return groups;
+      }, {} as Record<string, FoodEntry[]>),
+    [filteredEntries]
+  );
 
   const formatDateHeader = (dateStr: string) => {
     const date = parseISO(dateStr);

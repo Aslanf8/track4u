@@ -5,6 +5,7 @@ import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { GlobalScanner } from "@/components/layout/GlobalScanner";
 import { SessionProvider } from "next-auth/react";
+import { FoodEntriesProvider } from "@/lib/hooks/use-food-entries";
 
 // Type workaround for React 19 compatibility
 const Provider = SessionProvider as unknown as React.FC<{
@@ -25,17 +26,19 @@ export default async function MainLayout({
 
   return (
     <Provider session={session}>
-      <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
-        <Navbar />
-        <div className="flex min-h-[calc(100vh-4rem)]">
-          <Sidebar />
-          <main className="flex-1 w-full min-w-0 p-3 sm:p-4 md:p-6 pb-24 md:pb-6">
-            {children}
-          </main>
+      <FoodEntriesProvider>
+        <div className="min-h-screen bg-zinc-50 dark:bg-zinc-950">
+          <Navbar />
+          <div className="flex min-h-[calc(100vh-4rem)]">
+            <Sidebar />
+            <main className="flex-1 w-full min-w-0 p-3 sm:p-4 md:p-6 pb-24 md:pb-6">
+              {children}
+            </main>
+          </div>
+          <MobileNav />
+          <GlobalScanner />
         </div>
-        <MobileNav />
-        <GlobalScanner />
-      </div>
+      </FoodEntriesProvider>
     </Provider>
   );
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -16,69 +16,64 @@ import {
   Cell,
 } from "recharts";
 import { format, subDays, startOfDay, endOfDay } from "date-fns";
-import type { FoodEntry } from "@/lib/db/schema";
+import { useProgressEntries } from "@/lib/hooks/use-food-entries";
 
 export default function ProgressPage() {
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-
-  const loadEntries = async () => {
-    const start = subDays(new Date(), 30).toISOString();
-    const response = await fetch(`/api/food?startDate=${start}`);
-    const data = await response.json();
-    setEntries(data);
-    setIsLoading(false);
-  };
-
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => { loadEntries(); }, []);
+  const { entries, isLoading } = useProgressEntries();
 
   // Aggregate data by day for the last 7 days
-  const last7Days = Array.from({ length: 7 }, (_, i) => {
-    const date = subDays(new Date(), 6 - i);
-    const dayStart = startOfDay(date);
-    const dayEnd = endOfDay(date);
+  const last7Days = useMemo(() => 
+    Array.from({ length: 7 }, (_, i) => {
+      const date = subDays(new Date(), 6 - i);
+      const dayStart = startOfDay(date);
+      const dayEnd = endOfDay(date);
 
-    const dayEntries = entries.filter((e) => {
-      const entryDate = new Date(e.consumedAt);
-      return entryDate >= dayStart && entryDate <= dayEnd;
-    });
+      const dayEntries = entries.filter((e) => {
+        const entryDate = new Date(e.consumedAt);
+        return entryDate >= dayStart && entryDate <= dayEnd;
+      });
 
-    const totals = dayEntries.reduce(
+      const totals = dayEntries.reduce(
+        (acc, entry) => ({
+          calories: acc.calories + entry.calories,
+          protein: acc.protein + entry.protein,
+          carbs: acc.carbs + entry.carbs,
+          fat: acc.fat + entry.fat,
+        }),
+        { calories: 0, protein: 0, carbs: 0, fat: 0 }
+      );
+
+      return {
+        date: format(date, "EEE"),
+        ...totals,
+      };
+    }),
+    [entries]
+  );
+
+  // Calculate macro distribution for pie chart
+  const totalMacros = useMemo(() => 
+    entries.reduce(
       (acc, entry) => ({
-        calories: acc.calories + entry.calories,
         protein: acc.protein + entry.protein,
         carbs: acc.carbs + entry.carbs,
         fat: acc.fat + entry.fat,
       }),
-      { calories: 0, protein: 0, carbs: 0, fat: 0 }
-    );
-
-    return {
-      date: format(date, "EEE"),
-      ...totals,
-    };
-  });
-
-  // Calculate macro distribution for pie chart
-  const totalMacros = entries.reduce(
-    (acc, entry) => ({
-      protein: acc.protein + entry.protein,
-      carbs: acc.carbs + entry.carbs,
-      fat: acc.fat + entry.fat,
-    }),
-    { protein: 0, carbs: 0, fat: 0 }
+      { protein: 0, carbs: 0, fat: 0 }
+    ),
+    [entries]
   );
 
-  const pieData = [
+  const pieData = useMemo(() => [
     { name: "Protein", value: totalMacros.protein, color: "#22c55e" },
     { name: "Carbs", value: totalMacros.carbs, color: "#3b82f6" },
     { name: "Fat", value: totalMacros.fat, color: "#a855f7" },
-  ];
+  ], [totalMacros]);
 
   // Calculate averages
-  const avgCalories = Math.round(
-    last7Days.reduce((sum, day) => sum + day.calories, 0) / 7
+  const avgCalories = useMemo(() => 
+    Math.round(last7Days.reduce((sum, day) => sum + day.calories, 0) / 7),
+    [last7Days]
   );
 
   if (isLoading) {

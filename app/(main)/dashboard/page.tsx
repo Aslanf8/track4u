@@ -8,7 +8,7 @@ import { FoodEntryDialog } from "@/components/food/FoodEntryDialog";
 import { GoalsWizard } from "@/components/onboarding/GoalsWizard";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { startOfDay, endOfDay } from "date-fns";
+import { useTodayEntries } from "@/lib/hooks/use-food-entries";
 import type { FoodEntry } from "@/lib/db/schema";
 
 interface Goals {
@@ -25,52 +25,38 @@ interface Goals {
 }
 
 export default function DashboardPage() {
-  const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const {
+    entries,
+    totals,
+    isLoading: entriesLoading,
+    updateEntry,
+    removeEntry,
+    streak,
+  } = useTodayEntries();
   const [goals, setGoals] = useState<Goals | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [goalsLoading, setGoalsLoading] = useState(true);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState<FoodEntry | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const fetchData = useCallback(async () => {
-    const today = new Date();
-    const start = startOfDay(today).toISOString();
-    const end = endOfDay(today).toISOString();
+  const fetchGoals = useCallback(async () => {
+    const response = await fetch("/api/goals");
+    const data = await response.json();
 
-    const [entriesRes, goalsRes] = await Promise.all([
-      fetch(`/api/food?startDate=${start}&endDate=${end}`),
-      fetch("/api/goals"),
-    ]);
-
-    const entriesData = await entriesRes.json();
-    const goalsData = await goalsRes.json();
-
-    setEntries(entriesData);
-
-    // Check if user has goals set
-    if (!goalsData || (!goalsData.dailyCalories && !goalsData.dailyProtein)) {
+    if (!data || (!data.dailyCalories && !data.dailyProtein)) {
       setShowOnboarding(true);
       setGoals(null);
     } else {
-      setGoals(goalsData);
+      setGoals(data);
     }
-
-    setIsLoading(false);
+    setGoalsLoading(false);
   }, []);
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchGoals();
+  }, [fetchGoals]);
 
-  const totals = entries.reduce(
-    (acc, entry) => ({
-      calories: acc.calories + entry.calories,
-      protein: acc.protein + entry.protein,
-      carbs: acc.carbs + entry.carbs,
-      fat: acc.fat + entry.fat,
-    }),
-    { calories: 0, protein: 0, carbs: 0, fat: 0 }
-  );
+  const isLoading = entriesLoading || goalsLoading;
 
   const handleDelete = async (id: string) => {
     const response = await fetch(`/api/food/${id}`, {
@@ -78,7 +64,7 @@ export default function DashboardPage() {
     });
 
     if (response.ok) {
-      setEntries(entries.filter((e) => e.id !== id));
+      removeEntry(id);
       toast.success("Entry deleted");
     }
   };
@@ -89,9 +75,7 @@ export default function DashboardPage() {
   };
 
   const handleEntryUpdate = (updatedEntry: FoodEntry) => {
-    setEntries(
-      entries.map((e) => (e.id === updatedEntry.id ? updatedEntry : e))
-    );
+    updateEntry(updatedEntry);
   };
 
   const handleOnboardingComplete = async (newGoals: Goals) => {
@@ -147,7 +131,7 @@ export default function DashboardPage() {
       <QuickStats
         mealsLogged={entries.length}
         remainingCalories={(goals?.dailyCalories || 2000) - totals.calories}
-        streak={1}
+        streak={streak}
       />
 
       <div className="space-y-2 sm:space-y-3">
