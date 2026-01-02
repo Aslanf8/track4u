@@ -63,6 +63,7 @@ export async function PATCH(
         fat: body.fat,
         fiber: body.fiber,
         description: body.description,
+        imageUrl: body.imageUrl !== undefined ? body.imageUrl : undefined,
         consumedAt: body.consumedAt ? new Date(body.consumedAt) : undefined,
       })
       .where(

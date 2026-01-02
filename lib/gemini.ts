@@ -40,7 +40,7 @@ export async function getUserGeminiModel(userId: string): Promise<string> {
 }
 
 export async function analyzeFoodImageGemini(
-  imageBase64: string,
+  images: string[],
   userId: string,
   context?: string,
   modelId?: string
@@ -48,10 +48,12 @@ export async function analyzeFoodImageGemini(
   const client = await getGeminiClient(userId);
   const selectedModel = modelId || (await getUserGeminiModel(userId));
 
-  // Clean base64 string (remove data:image/jpeg;base64, prefix if present)
-  const base64Data = imageBase64.replace(/^data:image\/\w+;base64,/, "");
+  // Clean base64 strings (remove data:image/jpeg;base64, prefix if present)
+  const base64Images = images.map((img) =>
+    img.replace(/^data:image\/\w+;base64,/, "")
+  );
 
-  const prompt = `Analyze this food image and return ONLY a valid JSON object with no additional text or markdown. The JSON should have these exact fields:
+  const prompt = `Analyze these food images and return ONLY a valid JSON object with no additional text or markdown. The JSON should have these exact fields:
 {
   "name": "Food name as a string",
   "calories": estimated calories as a number,
@@ -63,7 +65,7 @@ export async function analyzeFoodImageGemini(
   "confidence": "low" or "medium" or "high"
 }
 
-If there are multiple food items, estimate totals for the entire meal. Be as accurate as possible with portion sizes visible in the image.${context?.trim() ? `\n\nUser context: "${context.trim()}"` : ""}`;
+If there are multiple food items, estimate totals for the entire meal. Be as accurate as possible with portion sizes visible in the images. Use all provided images to get better context about the meal.${context?.trim() ? `\n\nUser context: "${context.trim()}"` : ""}`;
 
   try {
     const model = client.getGenerativeModel({
@@ -73,15 +75,18 @@ If there are multiple food items, estimate totals for the entire meal. Be as acc
       },
     });
 
-    const result = await model.generateContent([
-      {
+    // Build parts array: all images first, then text prompt
+    const parts = [
+      ...base64Images.map((base64Data) => ({
         inlineData: {
           data: base64Data,
-          mimeType: "image/jpeg",
+          mimeType: "image/jpeg" as const,
         },
-      },
+      })),
       { text: prompt },
-    ]);
+    ];
+
+    const result = await model.generateContent(parts);
 
     const response = result.response;
     const text = response.text();

@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { analyzeFoodImage, categorizeOpenAIError, NoApiKeyError } from "@/lib/openai";
-import { analyzeFoodImageGemini, getUserGeminiModel } from "@/lib/gemini";
+import { analyzeFoodImageGemini } from "@/lib/gemini";
 import { db } from "@/lib/db";
 import { users } from "@/lib/db/schema";
 import { eq } from "drizzle-orm";
@@ -14,11 +14,22 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { image, context } = await request.json();
+    const { image, images, context } = await request.json();
 
-    if (!image) {
+    // Support both single image (backward compatibility) and images array
+    let imageArray: string[] = [];
+    
+    if (images) {
+      // If images is provided, use it (ensure it's an array and flatten if nested)
+      imageArray = Array.isArray(images) ? images.flat().filter((img): img is string => typeof img === "string") : [];
+    } else if (image) {
+      // Backward compatibility: single image
+      imageArray = Array.isArray(image) ? image.flat().filter((img): img is string => typeof img === "string") : [image];
+    }
+
+    if (imageArray.length === 0) {
       return NextResponse.json(
-        { error: "Image is required" },
+        { error: "At least one image is required" },
         { status: 400 }
       );
     }
@@ -35,9 +46,9 @@ export async function POST(request: NextRequest) {
     // Route to correct provider
     if (provider === "google") {
       const modelId = user?.preferredGeminiModel || "gemini-2.5-flash";
-      result = await analyzeFoodImageGemini(image, session.user.id, context, modelId);
+      result = await analyzeFoodImageGemini(imageArray, session.user.id, context, modelId);
     } else {
-      result = await analyzeFoodImage(image, session.user.id, context);
+      result = await analyzeFoodImage(imageArray, session.user.id, context);
     }
 
     return NextResponse.json(result);

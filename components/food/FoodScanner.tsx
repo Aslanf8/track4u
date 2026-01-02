@@ -38,9 +38,11 @@ interface FoodScannerProps {
 
 type Step = "capture" | "confirm" | "analyzing" | "review" | "needs-key";
 
+const MAX_IMAGES = 5;
+
 export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [step, setStep] = useState<Step>("capture");
-  const [imageData, setImageData] = useState<string | null>(null);
+  const [imageData, setImageData] = useState<string[]>([]);
   const [result, setResult] = useState<FoodAnalysisResult | null>(null);
   const [editedResult, setEditedResult] = useState<FoodAnalysisResult | null>(
     null
@@ -141,7 +143,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
   const resetState = useCallback(() => {
     setStep("capture");
-    setImageData(null);
+    setImageData([]);
     setResult(null);
     setEditedResult(null);
     setError(null);
@@ -238,7 +240,12 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
     ctx.drawImage(videoRef.current, 0, 0);
     const dataUrl = canvas.toDataURL("image/jpeg", 0.8);
-    setImageData(dataUrl);
+
+    if (imageData.length === 0) {
+      setImageData([dataUrl]);
+    } else {
+      setImageData([...imageData, dataUrl]);
+    }
 
     if (streamRef.current) {
       streamRef.current.getTracks().forEach((track) => track.stop());
@@ -253,16 +260,51 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (imageData.length >= MAX_IMAGES) {
+      setError(`Maximum ${MAX_IMAGES} images allowed`);
+      return;
+    }
+
     const reader = new FileReader();
     reader.onload = (event) => {
       const dataUrl = event.target?.result as string;
-      setImageData(dataUrl);
+      if (imageData.length === 0) {
+        setImageData([dataUrl]);
+      } else {
+        setImageData([...imageData, dataUrl]);
+      }
       setStep("confirm");
     };
     reader.readAsDataURL(file);
+    // Reset input so same file can be selected again
+    e.target.value = "";
   };
 
-  const analyzeImage = async (image: string, userContext?: string) => {
+  const removeImage = (index: number) => {
+    if (imageData.length <= 1) {
+      // If removing last image, go back to capture
+      setImageData([]);
+      setStep("capture");
+    } else {
+      setImageData(imageData.filter((_, i) => i !== index));
+    }
+  };
+
+  const addAnotherImage = () => {
+    if (imageData.length >= MAX_IMAGES) {
+      setError(`Maximum ${MAX_IMAGES} images allowed`);
+      return;
+    }
+    // Go back to capture step to add another image
+    setStep("capture");
+  };
+
+  const analyzeImage = async (images: string[], userContext?: string) => {
+    if (images.length === 0) {
+      setError("At least one image is required");
+      return;
+    }
+
     setStep("analyzing");
     setError(null);
 
@@ -270,7 +312,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ image, context: userContext || undefined }),
+        body: JSON.stringify({ images, context: userContext || undefined }),
       });
 
       const data = await response.json();
@@ -318,7 +360,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   };
 
   const handleRefine = async () => {
-    if (!imageData) return;
+    if (imageData.length === 0) return;
 
     setIsRefining(true);
     setError(null);
@@ -328,7 +370,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          image: imageData,
+          images: imageData,
           context: refineContext.trim() || undefined,
         }),
       });
@@ -360,9 +402,15 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
     setIsSaving(true);
     try {
+      // Save all images as JSON array (backward compatible: single image stored as string, multiple as JSON array)
+      const imageUrlToSave =
+        imageData.length > 1
+          ? JSON.stringify(imageData)
+          : imageData[0] || undefined;
+
       await onSave({
         ...editedResult,
-        imageUrl: imageData || undefined,
+        imageUrl: imageUrlToSave,
       });
       handleClose();
     } catch (err) {
@@ -619,17 +667,83 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
           </div>
         )}
 
-        {step === "confirm" && imageData && (
+        {step === "confirm" && imageData.length > 0 && (
           <div className="space-y-4">
-            <div className="relative aspect-[4/3] bg-black rounded-lg overflow-hidden">
-              <Image
-                src={imageData}
-                alt="Food preview"
-                fill
-                className="object-cover"
-                unoptimized
-              />
+            {/* Image grid */}
+            <div
+              className={`grid gap-3 ${
+                imageData.length === 1
+                  ? "grid-cols-1"
+                  : imageData.length === 2
+                  ? "grid-cols-2"
+                  : "grid-cols-2 sm:grid-cols-3"
+              }`}
+            >
+              {imageData.map((img, index) => (
+                <div
+                  key={index}
+                  className="relative aspect-[4/3] bg-black rounded-lg overflow-hidden group"
+                >
+                  <Image
+                    src={img}
+                    alt={`Food preview ${index + 1}`}
+                    fill
+                    className="object-cover"
+                    unoptimized
+                  />
+                  {imageData.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() => removeImage(index)}
+                      className="absolute top-2 right-2 p-1.5 rounded-full bg-black/60 hover:bg-black/80 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="w-4 h-4 text-white"
+                      >
+                        <path d="M18 6 6 18M6 6l12 12" />
+                      </svg>
+                    </button>
+                  )}
+                  {index === 0 && (
+                    <div className="absolute bottom-2 left-2 px-2 py-1 rounded-full bg-black/60 backdrop-blur-sm">
+                      <span className="text-xs text-white font-medium">
+                        Primary
+                      </span>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
+
+            {/* Add Another Image button */}
+            {imageData.length < MAX_IMAGES && (
+              <Button
+                variant="outline"
+                className="w-full border-2 border-dashed border-zinc-300 dark:border-zinc-700 hover:border-amber-500/50 bg-zinc-100/30 dark:bg-zinc-800/30 text-zinc-700 dark:text-zinc-300"
+                onClick={addAnotherImage}
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  className="w-4 h-4 mr-2"
+                >
+                  <path d="M12 5v14M5 12h14" />
+                </svg>
+                Add Another Image ({imageData.length}/{MAX_IMAGES})
+              </Button>
+            )}
 
             {/* Context input - subtle expandable */}
             <div className="space-y-2">
@@ -736,15 +850,30 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
         {step === "analyzing" && (
           <div className="py-12 flex flex-col items-center gap-4">
-            {imageData && (
-              <div className="relative w-32 h-32 rounded-lg overflow-hidden">
-                <Image
-                  src={imageData}
-                  alt="Food"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+            {imageData.length > 0 && (
+              <div
+                className={`grid gap-2 ${
+                  imageData.length === 1
+                    ? "grid-cols-1"
+                    : imageData.length === 2
+                    ? "grid-cols-2"
+                    : "grid-cols-2 sm:grid-cols-3"
+                } max-w-md`}
+              >
+                {imageData.map((img, index) => (
+                  <div
+                    key={index}
+                    className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden opacity-75"
+                  >
+                    <Image
+                      src={img}
+                      alt={`Food ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  </div>
+                ))}
               </div>
             )}
             <div className="flex items-center gap-3">
@@ -850,15 +979,37 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
         {step === "review" && editedResult && (
           <div className="space-y-4">
-            {imageData && (
-              <div className="relative aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800">
-                <Image
-                  src={imageData}
-                  alt="Food"
-                  fill
-                  className="object-cover"
-                  unoptimized
-                />
+            {imageData.length > 0 && (
+              <div
+                className={`grid gap-3 ${
+                  imageData.length === 1
+                    ? "grid-cols-1"
+                    : imageData.length === 2
+                    ? "grid-cols-2"
+                    : "grid-cols-2 sm:grid-cols-3"
+                }`}
+              >
+                {imageData.map((img, index) => (
+                  <div
+                    key={index}
+                    className="relative aspect-video rounded-lg overflow-hidden bg-zinc-100 dark:bg-zinc-800"
+                  >
+                    <Image
+                      src={img}
+                      alt={`Food ${index + 1}`}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                    {index === 0 && (
+                      <div className="absolute top-2 left-2 px-2 py-1 rounded-full bg-black/60 backdrop-blur-sm">
+                        <span className="text-xs text-white font-medium">
+                          Primary
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                ))}
               </div>
             )}
 

@@ -113,7 +113,7 @@ export function categorizeOpenAIError(error: unknown): OpenAIError {
 }
 
 export async function analyzeFoodImage(
-  imageBase64: string,
+  images: string[],
   userId: string,
   context?: string
 ): Promise<FoodAnalysisResult> {
@@ -125,16 +125,17 @@ export async function analyzeFoodImage(
     ? `\n\nUser context: "${context.trim()}"`
     : "";
 
-  try {
-    const response = await client.chat.completions.create({
-      model: "gpt-5.2",
-      messages: [
-        {
-          role: "user",
-          content: [
-            {
-              type: "text",
-              text: `Analyze this food image and return ONLY a valid JSON object with no additional text or markdown. The JSON should have these exact fields:
+  // Ensure all images are strings (flatten if nested arrays somehow got through)
+  const flatImages = images.flat().filter((img): img is string => typeof img === "string");
+
+  if (flatImages.length === 0) {
+    throw new Error("No valid images provided");
+  }
+
+  // Build content array: text prompt first, then all images
+  const textContent = {
+    type: "text" as const,
+    text: `Analyze these food images and return ONLY a valid JSON object with no additional text or markdown. The JSON should have these exact fields:
 {
   "name": "Food name as a string",
   "calories": estimated calories as a number,
@@ -146,16 +147,35 @@ export async function analyzeFoodImage(
   "confidence": "low" or "medium" or "high"
 }
 
-If there are multiple food items, estimate totals for the entire meal. Be as accurate as possible with portion sizes visible in the image.${contextLine}`,
-            },
-            {
-              type: "image_url",
-              image_url: {
-                url: imageBase64,
-                detail: "high",
-              },
-            },
-          ],
+If there are multiple food items, estimate totals for the entire meal. Be as accurate as possible with portion sizes visible in the images. Use all provided images to get better context about the meal.${contextLine}`,
+  };
+
+  // Build image content items - ensure each url is a string
+  const imageContents = flatImages.map((image) => {
+    // Double-check: ensure image is a string
+    if (Array.isArray(image)) {
+      throw new Error("Invalid image format: nested array detected");
+    }
+    const imageUrl = typeof image === "string" ? image : String(image);
+    return {
+      type: "image_url" as const,
+      image_url: {
+        url: imageUrl,
+        detail: "high" as const,
+      },
+    };
+  });
+
+  // Combine text and images
+  const content = [textContent, ...imageContents];
+
+  try {
+    const response = await client.chat.completions.create({
+      model: "gpt-5.2",
+      messages: [
+        {
+          role: "user",
+          content,
         },
       ],
       max_completion_tokens: 500,

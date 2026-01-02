@@ -34,6 +34,24 @@ function MacroItem({ label, value, unit = "g", color }: MacroItemProps) {
   );
 }
 
+// Helper to parse imageUrl - supports both single string (backward compatible) and JSON array
+function parseImageUrl(imageUrl: string | null | undefined): string[] {
+  if (!imageUrl) return [];
+  
+  // Try to parse as JSON array first
+  try {
+    const parsed = JSON.parse(imageUrl);
+    if (Array.isArray(parsed) && parsed.every(img => typeof img === "string")) {
+      return parsed;
+    }
+  } catch {
+    // Not JSON, treat as single image string
+  }
+  
+  // Single image string (backward compatible)
+  return [imageUrl];
+}
+
 export function FoodEntryCard({
   entry,
   onDelete,
@@ -49,6 +67,7 @@ export function FoodEntryCard({
   };
 
   const hasFiber = entry.fiber !== null && entry.fiber > 0;
+  const images = parseImageUrl(entry.imageUrl);
 
   return (
     <Card
@@ -61,15 +80,32 @@ export function FoodEntryCard({
     >
       <div className="flex">
         {/* Image Section */}
-        {entry.imageUrl && (
+        {images.length > 0 && (
           <div className="relative w-[72px] h-[72px] sm:w-24 sm:h-24 flex-shrink-0">
-            <Image
-              src={entry.imageUrl}
-              alt={entry.name}
-              fill
-              className="object-cover"
-              unoptimized
-            />
+            {images.length === 1 ? (
+              <Image
+                src={images[0]}
+                alt={entry.name}
+                fill
+                className="object-cover"
+                unoptimized
+              />
+            ) : (
+              <div className="relative w-full h-full">
+                <Image
+                  src={images[0]}
+                  alt={entry.name}
+                  fill
+                  className="object-cover"
+                  unoptimized
+                />
+                <div className="absolute bottom-1 right-1 px-1.5 py-0.5 rounded bg-black/60 backdrop-blur-sm">
+                  <span className="text-[9px] text-white font-medium">
+                    +{images.length - 1}
+                  </span>
+                </div>
+              </div>
+            )}
             <div className="absolute inset-0 bg-gradient-to-r from-transparent to-white/10 dark:to-zinc-900/20" />
           </div>
         )}
