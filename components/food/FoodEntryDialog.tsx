@@ -52,6 +52,11 @@ export function FoodEntryDialog({
     fiber: 0,
     description: "",
   });
+  const [goals, setGoals] = useState<{
+    dailyProtein?: number;
+    dailyCarbs?: number;
+    dailyFat?: number;
+  } | null>(null);
 
   // Reanalyze state
   const [reanalyzeExpanded, setReanalyzeExpanded] = useState(false);
@@ -74,6 +79,20 @@ export function FoodEntryDialog({
       setIsEditing(false);
       setReanalyzeExpanded(false);
       setReanalyzeContext("");
+      
+      // Fetch goals for percentage display
+      fetch("/api/goals")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            setGoals({
+              dailyProtein: data.dailyProtein,
+              dailyCarbs: data.dailyCarbs,
+              dailyFat: data.dailyFat,
+            });
+          }
+        })
+        .catch((err) => console.error("Failed to fetch goals:", err));
     }
   }, [entry, open]);
 
@@ -226,6 +245,11 @@ export function FoodEntryDialog({
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
                   Protein
                 </p>
+                {goals?.dailyProtein && entry.protein > 0 && (
+                  <p className="text-xs text-zinc-400 mt-1">
+                    {(entry.protein / goals.dailyProtein * 100).toFixed(1)}% of daily
+                  </p>
+                )}
               </div>
               <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -235,6 +259,11 @@ export function FoodEntryDialog({
                   <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />
                   Carbs
                 </p>
+                {goals?.dailyCarbs && entry.carbs > 0 && (
+                  <p className="text-xs text-zinc-400 mt-1">
+                    {(entry.carbs / goals.dailyCarbs * 100).toFixed(1)}% of daily
+                  </p>
+                )}
               </div>
               <div className="bg-zinc-100 dark:bg-zinc-800 rounded-lg p-3 text-center">
                 <p className="text-2xl font-bold text-zinc-900 dark:text-zinc-100">
@@ -244,6 +273,11 @@ export function FoodEntryDialog({
                   <span className="w-1.5 h-1.5 rounded-full bg-rose-500" />
                   Fat
                 </p>
+                {goals?.dailyFat && entry.fat > 0 && (
+                  <p className="text-xs text-zinc-400 mt-1">
+                    {(entry.fat / goals.dailyFat * 100).toFixed(1)}% of daily
+                  </p>
+                )}
               </div>
             </div>
 

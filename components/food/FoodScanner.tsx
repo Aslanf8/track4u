@@ -50,6 +50,11 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [context, setContext] = useState<string>("");
   const [contextExpanded, setContextExpanded] = useState(false);
   const contextInputRef = useRef<HTMLInputElement>(null);
+  const [goals, setGoals] = useState<{
+    dailyProtein?: number;
+    dailyCarbs?: number;
+    dailyFat?: number;
+  } | null>(null);
 
   // Refine state (for review step)
   const [refineExpanded, setRefineExpanded] = useState(false);
@@ -80,61 +85,41 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     setIsMobile(isMobileDevice);
   }, []);
 
-  // Auto-start camera when dialog opens
+  // Fetch goals when review step is reached
   useEffect(() => {
-    const initializeCamera = async () => {
+    if (step === "review") {
+      fetch("/api/goals")
+        .then((res) => res.json())
+        .then((data) => {
+          if (data) {
+            setGoals({
+              dailyProtein: data.dailyProtein,
+              dailyCarbs: data.dailyCarbs,
+              dailyFat: data.dailyFat,
+            });
+          }
+        })
+        .catch((err) => console.error("Failed to fetch goals:", err));
+    }
+  }, [step]);
+
+  // Enumerate cameras when dialog opens (but don't start camera automatically)
+  useEffect(() => {
+    const enumerateCameras = async () => {
       try {
-        // Stop any existing stream first
-        if (streamRef.current) {
-          streamRef.current.getTracks().forEach((track) => track.stop());
-          streamRef.current = null;
-        }
-
-        const isMobileDevice = /iPhone|iPad|iPod|Android/i.test(
-          navigator.userAgent
-        );
-
-        // Start camera with appropriate settings
-        // Mobile: use back camera (environment), Desktop: use default
-        const constraints: MediaStreamConstraints = {
-          video: isMobileDevice
-            ? { facingMode: { ideal: "environment" } }
-            : true,
-        };
-
-        const stream = await navigator.mediaDevices.getUserMedia(constraints);
-        streamRef.current = stream;
-
-        // Set cameraActive first so video element renders
-        setCameraActive(true);
-
-        // Enumerate cameras in background for camera switching feature
         const devices = await navigator.mediaDevices.enumerateDevices();
         const cameras = devices.filter(
           (device) => device.kind === "videoinput"
         );
         setAvailableCameras(cameras);
         setHasMultipleCameras(cameras.length > 1);
-
-        if (cameras.length > 0) {
-          // Find the current active camera's deviceId
-          const currentTrack = stream.getVideoTracks()[0];
-          const settings = currentTrack.getSettings();
-          if (settings.deviceId) {
-            setSelectedCameraId(settings.deviceId);
-          } else {
-            setSelectedCameraId(cameras[0].deviceId);
-          }
-        }
       } catch (err) {
-        console.error("Failed to initialize camera:", err);
-        setError("Unable to access camera. Please use file upload instead.");
-        setCameraActive(false);
+        console.error("Failed to enumerate cameras:", err);
       }
     };
 
-    if (open && step === "capture" && !cameraActive && !imageData) {
-      initializeCamera();
+    if (open && step === "capture") {
+      enumerateCameras();
     }
 
     // Cleanup when dialog closes
@@ -142,9 +127,10 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       if (!open && streamRef.current) {
         streamRef.current.getTracks().forEach((track) => track.stop());
         streamRef.current = null;
+        setCameraActive(false);
       }
     };
-  }, [open, step, cameraActive, imageData]);
+  }, [open, step]);
 
   // Assign stream to video element once it's rendered
   useEffect(() => {
@@ -203,6 +189,16 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
       const stream = await navigator.mediaDevices.getUserMedia(constraints);
       streamRef.current = stream;
+
+      // Set the selected camera ID
+      const currentTrack = stream.getVideoTracks()[0];
+      const settings = currentTrack.getSettings();
+      if (settings.deviceId) {
+        setSelectedCameraId(settings.deviceId);
+      } else if (availableCameras.length > 0) {
+        setSelectedCameraId(availableCameras[0].deviceId);
+      }
+
       if (videoRef.current) {
         videoRef.current.srcObject = stream;
       }
@@ -211,6 +207,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     } catch (err) {
       console.error("Camera error:", err);
       setError("Unable to access camera. Please use file upload instead.");
+      setCameraActive(false);
     }
   };
 
@@ -894,6 +891,16 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                 <div className="space-y-2">
                   <Label className="text-zinc-700 dark:text-zinc-300">
                     Protein (g)
+                    {goals?.dailyProtein && editedResult.protein > 0 && (
+                      <span className="ml-2 text-xs text-zinc-500">
+                        (
+                        {(
+                          (editedResult.protein / goals.dailyProtein) *
+                          100
+                        ).toFixed(1)}
+                        % of daily)
+                      </span>
+                    )}
                   </Label>
                   <Input
                     type="number"
@@ -907,6 +914,16 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                 <div className="space-y-2">
                   <Label className="text-zinc-700 dark:text-zinc-300">
                     Carbs (g)
+                    {goals?.dailyCarbs && editedResult.carbs > 0 && (
+                      <span className="ml-2 text-xs text-zinc-500">
+                        (
+                        {(
+                          (editedResult.carbs / goals.dailyCarbs) *
+                          100
+                        ).toFixed(1)}
+                        % of daily)
+                      </span>
+                    )}
                   </Label>
                   <Input
                     type="number"
@@ -920,6 +937,13 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                 <div className="space-y-2">
                   <Label className="text-zinc-700 dark:text-zinc-300">
                     Fat (g)
+                    {goals?.dailyFat && editedResult.fat > 0 && (
+                      <span className="ml-2 text-xs text-zinc-500">
+                        (
+                        {((editedResult.fat / goals.dailyFat) * 100).toFixed(1)}
+                        % of daily)
+                      </span>
+                    )}
                   </Label>
                   <Input
                     type="number"

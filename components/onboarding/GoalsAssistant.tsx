@@ -17,18 +17,9 @@ interface GoalsAssistantProps {
 }
 
 const QUICK_QUESTIONS: Record<string, string[]> = {
-  welcome: [
-    "How does this work?",
-    "What info do you need?",
-  ],
-  basics: [
-    "Why does age matter?",
-    "Does sex affect metabolism?",
-  ],
-  body: [
-    "Should I use morning weight?",
-    "How accurate is BMI?",
-  ],
+  welcome: ["How does this work?", "What info do you need?"],
+  basics: ["Why does age matter?", "How does gender affect calories?"],
+  body: ["Should I use morning weight?", "How accurate is BMI?"],
   activity: [
     "How do I pick my activity level?",
     "Does my job count?",
@@ -49,18 +40,19 @@ const QUICK_QUESTIONS: Record<string, string[]> = {
     "Is my key secure?",
     "What if I skip this?",
   ],
-  confirm: [
-    "Do these goals look balanced?",
-    "Can I change these later?",
-  ],
+  confirm: ["Do these goals look balanced?", "Can I change these later?"],
 };
 
-export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps) {
+export function GoalsAssistant({
+  currentStep,
+  currentGoal,
+}: GoalsAssistantProps) {
   const [messages, setMessages] = useState<Message[]>([
     {
       id: "initial",
       role: "assistant",
-      content: "Hi! I'm your nutrition assistant. Ask me anything about setting your daily goals — I'll keep answers short and actionable.",
+      content:
+        "Hi! I'm your nutrition assistant. Ask me anything about setting your daily goals — I'll keep answers short and actionable.",
     },
   ]);
   const [input, setInput] = useState("");
@@ -107,7 +99,8 @@ export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps
           {
             id: (Date.now() + 1).toString(),
             role: "assistant",
-            content: "🔑 To use the AI assistant, you'll need to add your OpenAI API key first. Complete the 'AI Setup' step or add it later in Settings.",
+            content:
+              "🔑 To use the AI assistant, you'll need to add your OpenAI API key first. Complete the 'AI Setup' step or add it later in Settings.",
           },
         ]);
         return;
@@ -116,7 +109,10 @@ export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: "assistant",
-        content: data.response || data.error || "Sorry, I couldn't process that. Try again?",
+        content:
+          data.response ||
+          data.error ||
+          "Sorry, I couldn't process that. Try again?",
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
@@ -134,7 +130,8 @@ export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps
     }
   };
 
-  const quickQuestions = QUICK_QUESTIONS[currentStep] || QUICK_QUESTIONS.welcome;
+  const quickQuestions =
+    QUICK_QUESTIONS[currentStep] || QUICK_QUESTIONS.welcome;
 
   return (
     <div className="flex flex-col h-full">
@@ -161,8 +158,12 @@ export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps
             </svg>
           </div>
           <div>
-            <p className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-100">AI Assistant</p>
-            <p className="text-[10px] lg:text-xs text-zinc-500">Ask about nutrition goals</p>
+            <p className="text-xs lg:text-sm font-medium text-zinc-900 dark:text-zinc-100">
+              AI Assistant
+            </p>
+            <p className="text-[10px] lg:text-xs text-zinc-500">
+              Ask about nutrition goals
+            </p>
           </div>
         </div>
       </div>
@@ -189,14 +190,23 @@ export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps
             </div>
           </div>
         ))}
-        
+
         {isLoading && (
           <div className="flex justify-start">
             <div className="bg-zinc-100 dark:bg-zinc-800 rounded-2xl px-4 py-2.5">
               <div className="flex gap-1">
-                <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                <span className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <span
+                  className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "0ms" }}
+                />
+                <span
+                  className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "150ms" }}
+                />
+                <span
+                  className="w-2 h-2 bg-zinc-400 rounded-full animate-bounce"
+                  style={{ animationDelay: "300ms" }}
+                />
               </div>
             </div>
           </div>
@@ -261,4 +271,3 @@ export function GoalsAssistant({ currentStep, currentGoal }: GoalsAssistantProps
     </div>
   );
 }
-

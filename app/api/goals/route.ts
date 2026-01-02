@@ -21,7 +21,13 @@ export async function GET() {
       return NextResponse.json(null);
     }
 
-    return NextResponse.json(goals);
+    // Round weight to 1 decimal place for consistency
+    const roundedGoals = {
+      ...goals,
+      weight: goals.weight ? Math.round(goals.weight * 10) / 10 : goals.weight,
+    };
+
+    return NextResponse.json(roundedGoals);
   } catch (error) {
     console.error("Error fetching goals:", error);
     return NextResponse.json(
@@ -48,12 +54,13 @@ export async function PUT(request: NextRequest) {
 
     if (existingGoals) {
       // Update existing goals
+      // Round weight to 1 decimal place
       const updated = await db
         .update(userGoals)
         .set({
           age: body.age,
           sex: body.sex,
-          weight: body.weight,
+          weight: body.weight ? Math.round(body.weight * 10) / 10 : body.weight,
           height: body.height,
           activityLevel: body.activityLevel,
           goalType: body.goalType,
@@ -68,6 +75,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json(updated[0]);
     } else {
       // Create new goals
+      // Round weight to 1 decimal place
       const created = await db
         .insert(userGoals)
         .values({
@@ -75,7 +83,7 @@ export async function PUT(request: NextRequest) {
           userId: session.user.id,
           age: body.age,
           sex: body.sex,
-          weight: body.weight,
+          weight: body.weight ? Math.round(body.weight * 10) / 10 : body.weight,
           height: body.height,
           activityLevel: body.activityLevel,
           goalType: body.goalType,

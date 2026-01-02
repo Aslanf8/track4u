@@ -28,10 +28,10 @@ interface FoodEntriesContextValue {
   // Filtered views
   todayEntries: FoodEntry[];
   last30DaysEntries: FoodEntry[];
-  
+
   // Stats
   streak: number;
-  
+
   // Refresh trigger for external sync
   refreshKey: number;
 }
@@ -116,7 +116,7 @@ export function FoodEntriesProvider({ children }: FoodEntriesProviderProps) {
 
   const last30DaysEntries = useMemo(() => {
     const start = subDays(new Date(), 30);
-    
+
     return entries.filter((entry) => {
       const entryDate = new Date(entry.consumedAt);
       return entryDate >= start;

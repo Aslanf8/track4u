@@ -50,6 +50,8 @@ interface MacroGoals {
 interface GoalsWizardProps {
   open: boolean;
   onComplete: (data: ProfileData & MacroGoals) => void;
+  initialData?: Partial<ProfileData & MacroGoals>; // Optional initial values for recalibration
+  onClose?: () => void; // Optional close handler
 }
 
 const steps = [
@@ -159,8 +161,17 @@ function calculateMacros(profile: ProfileData): MacroGoals {
   return { dailyCalories, dailyProtein, dailyCarbs, dailyFat };
 }
 
-export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
-  const [currentStep, setCurrentStep] = useState(0);
+export function GoalsWizard({
+  open,
+  onComplete,
+  initialData,
+  onClose,
+}: GoalsWizardProps) {
+  // Determine if this is a recalibration (has initial data) or first-time setup
+  const isRecalibration = !!initialData;
+
+  // Start at step 1 (basics) if recalibration, step 0 (welcome) if first-time
+  const [currentStep, setCurrentStep] = useState(isRecalibration ? 1 : 0);
 
   // Unit preferences (default to imperial)
   const [weightUnit, setWeightUnit] = useState<WeightUnit>("lbs");
@@ -173,20 +184,43 @@ export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
 
   // Profile stores metric internally for calculations
   const [profile, setProfile] = useState<ProfileData>({
-    age: 25,
-    sex: "male",
-    weight: lbsToKg(154), // Convert default lbs to kg
-    height: feetInchesToCm(5, 9), // Convert default feet/inches to cm
-    activityLevel: "moderate",
-    goalType: "maintain",
+    age: initialData?.age ?? 25,
+    sex: initialData?.sex ?? "male",
+    weight: initialData?.weight ?? lbsToKg(154), // Convert default lbs to kg
+    height: initialData?.height ?? feetInchesToCm(5, 9), // Convert default feet/inches to cm
+    activityLevel: initialData?.activityLevel ?? "moderate",
+    goalType: initialData?.goalType ?? "maintain",
   });
   const [macros, setMacros] = useState<MacroGoals>({
-    dailyCalories: 2000,
-    dailyProtein: 120,
-    dailyCarbs: 250,
-    dailyFat: 65,
+    dailyCalories: initialData?.dailyCalories ?? 2000,
+    dailyProtein: initialData?.dailyProtein ?? 120,
+    dailyCarbs: initialData?.dailyCarbs ?? 250,
+    dailyFat: initialData?.dailyFat ?? 65,
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Initialize display values from initialData when dialog opens
+  useEffect(() => {
+    if (open && initialData) {
+      // Initialize weight display
+      if (initialData.weight) {
+        setDisplayWeight(Math.round(kgToLbs(initialData.weight)));
+      }
+
+      // Initialize height display
+      if (initialData.height) {
+        const { feet, inches } = cmToFeetInches(initialData.height);
+        setDisplayFeet(feet);
+        setDisplayInches(inches);
+      }
+
+      // Reset to step 1 (basics) when opening for recalibration
+      setCurrentStep(1);
+    } else if (open && !initialData) {
+      // Reset to step 0 (welcome) for first-time setup
+      setCurrentStep(0);
+    }
+  }, [open, initialData]);
 
   // Update profile when display values change
   const updateWeight = (value: number, unit: WeightUnit) => {
@@ -323,13 +357,33 @@ export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
 
   const handleNext = () => {
     if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
+      let nextStep = currentStep + 1;
+
+      // Skip the "openai" step if this is a recalibration (user already has API keys in settings)
+      if (isRecalibration && steps[nextStep]?.id === "openai") {
+        nextStep = nextStep + 1;
+      }
+
+      // Make sure we don't go beyond the last step
+      if (nextStep < steps.length) {
+        setCurrentStep(nextStep);
+      }
     }
   };
 
   const handleBack = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      let prevStep = currentStep - 1;
+
+      // Skip the "openai" step when going back during recalibration
+      if (isRecalibration && steps[prevStep]?.id === "openai") {
+        prevStep = prevStep - 1;
+      }
+
+      // Don't go back before the first step (or step 1 for recalibration)
+      if (prevStep >= (isRecalibration ? 1 : 0)) {
+        setCurrentStep(prevStep);
+      }
     }
   };
 
@@ -1175,10 +1229,17 @@ export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={() => {}}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        if (!isOpen && onClose) {
+          onClose();
+        }
+      }}
+    >
       <DialogContent
         className="w-[98vw] max-w-[98vw] lg:max-w-[1100px] h-[95vh] max-h-[95vh] lg:h-auto lg:max-h-[90vh] p-0 bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 overflow-hidden"
-        showCloseButton={false}
+        showCloseButton={true}
       >
         <DialogTitle className="sr-only">
           Set Up Your Nutrition Goals
@@ -1213,7 +1274,7 @@ export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
               <Button
                 variant="outline"
                 onClick={handleBack}
-                disabled={currentStep === 0}
+                disabled={currentStep === (isRecalibration ? 1 : 0)}
                 className="border-zinc-300 dark:border-zinc-700 text-sm sm:text-base"
               >
                 Back
@@ -1225,7 +1286,11 @@ export function GoalsWizard({ open, onComplete }: GoalsWizardProps) {
                   disabled={isSubmitting}
                   className="bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white text-sm sm:text-base"
                 >
-                  {isSubmitting ? "Saving..." : "Start Tracking"}
+                  {isSubmitting
+                    ? "Saving..."
+                    : isRecalibration
+                    ? "Update Plan"
+                    : "Start Tracking"}
                 </Button>
               ) : (
                 <Button

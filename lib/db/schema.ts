@@ -10,6 +10,13 @@ export const users = sqliteTable("users", {
   encryptedApiKey: text("encrypted_api_key"),
   apiKeyLastFour: text("api_key_last_four"), // For display purposes
   apiKeyAddedAt: integer("api_key_added_at", { mode: "timestamp" }),
+  // Google Gemini Keys
+  encryptedGoogleKey: text("encrypted_google_key"),
+  googleKeyLastFour: text("google_key_last_four"),
+  googleKeyAddedAt: integer("google_key_added_at", { mode: "timestamp" }),
+  // AI Provider Preferences
+  preferredProvider: text("preferred_provider").default("openai"), // 'openai' | 'google'
+  preferredGeminiModel: text("preferred_gemini_model").default("gemini-2.5-flash"),
   createdAt: integer("created_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),

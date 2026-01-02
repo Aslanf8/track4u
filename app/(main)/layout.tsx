@@ -4,6 +4,7 @@ import { Navbar } from "@/components/layout/Navbar";
 import { Sidebar } from "@/components/layout/Sidebar";
 import { MobileNav } from "@/components/layout/MobileNav";
 import { GlobalScanner } from "@/components/layout/GlobalScanner";
+import { GlobalAgent } from "@/components/layout/GlobalAgent";
 import { SessionProvider } from "next-auth/react";
 import { FoodEntriesProvider } from "@/lib/hooks/use-food-entries";
 
@@ -37,6 +38,7 @@ export default async function MainLayout({
           </div>
           <MobileNav />
           <GlobalScanner />
+          <GlobalAgent />
         </div>
       </FoodEntriesProvider>
     </Provider>
