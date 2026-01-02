@@ -1,13 +1,13 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect, useCallback } from "react";
 import { FoodEntryCard } from "@/components/food/FoodEntryCard";
 import { FoodEntryDialog } from "@/components/food/FoodEntryDialog";
 import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { format, parseISO, isToday, isYesterday, startOfDay } from "date-fns";
-import { useHistoryEntries } from "@/lib/hooks/use-food-entries";
+import { format, parseISO, isToday, isYesterday, startOfDay, subDays } from "date-fns";
 import type { FoodEntry } from "@/lib/db/schema";
 
 interface DaySummaryProps {
@@ -50,11 +50,74 @@ function DaySummary({ totals }: DaySummaryProps) {
   );
 }
 
+type DateRange = "7" | "30" | "90" | "all";
+
 export default function HistoryPage() {
-  const { entries, isLoading, updateEntry, removeEntry } = useHistoryEntries();
+  const [entries, setEntries] = useState<FoodEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [dateRange, setDateRange] = useState<DateRange>("30");
   const [selectedEntry, setSelectedEntry] = useState<FoodEntry | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [expandedDates, setExpandedDates] = useState<Set<string>>(new Set());
+  const [hasMore, setHasMore] = useState(false);
+
+  // Fetch entries with date range
+  const fetchEntries = useCallback(async (range: DateRange, append = false) => {
+    try {
+      setIsLoading(!append);
+      let startDate: Date | null = null;
+      
+      if (range !== "all") {
+        const days = parseInt(range);
+        startDate = subDays(new Date(), days);
+      }
+
+      const params = new URLSearchParams();
+      if (startDate) {
+        params.set("startDate", startDate.toISOString());
+      }
+
+      const response = await fetch(`/api/food?${params.toString()}`);
+      if (!response.ok) throw new Error("Failed to fetch entries");
+
+      const data = await response.json();
+      
+      if (append) {
+        setEntries((prev) => [...prev, ...data]);
+      } else {
+        setEntries(data);
+        // Auto-expand first 3 dates
+        const grouped = data.reduce((groups: Record<string, FoodEntry[]>, entry: FoodEntry) => {
+          const date = startOfDay(new Date(entry.consumedAt)).toISOString();
+          if (!groups[date]) groups[date] = [];
+          groups[date].push(entry);
+          return groups;
+        }, {});
+        const sortedDates = Object.keys(grouped).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+        setExpandedDates(new Set(sortedDates.slice(0, 3)));
+      }
+      
+      setHasMore(data.length >= 50); // Assume more if we got 50+ entries
+    } catch (err) {
+      console.error("Fetch error:", err);
+      toast.error("Failed to load entries");
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchEntries(dateRange);
+  }, [dateRange, fetchEntries]);
+
+  const updateEntry = useCallback((updatedEntry: FoodEntry) => {
+    setEntries((prev) => prev.map((e) => (e.id === updatedEntry.id ? updatedEntry : e)));
+  }, []);
+
+  const removeEntry = useCallback((id: string) => {
+    setEntries((prev) => prev.filter((e) => e.id !== id));
+  }, []);
 
   const handleDelete = async (id: string) => {
     const response = await fetch(`/api/food/${id}`, {
@@ -65,6 +128,18 @@ export default function HistoryPage() {
       removeEntry(id);
       toast.success("Entry deleted");
     }
+  };
+
+  const toggleDateExpanded = (date: string) => {
+    setExpandedDates((prev) => {
+      const next = new Set(prev);
+      if (next.has(date)) {
+        next.delete(date);
+      } else {
+        next.add(date);
+      }
+      return next;
+    });
   };
 
   const handleEntryClick = (entry: FoodEntry) => {
@@ -133,9 +208,47 @@ export default function HistoryPage() {
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-4 sm:space-y-6 px-0.5 sm:px-1">
-      <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
-        History
-      </h1>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 sm:gap-4">
+        <h1 className="text-xl sm:text-2xl font-bold text-zinc-900 dark:text-zinc-100">
+          History
+        </h1>
+        
+        {/* Date Range Selector */}
+        <div className="flex items-center gap-1.5 sm:gap-2">
+          <Button
+            variant={dateRange === "7" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateRange("7")}
+            className="h-8 px-2.5 sm:px-3 text-xs flex-1 sm:flex-none"
+          >
+            7d
+          </Button>
+          <Button
+            variant={dateRange === "30" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateRange("30")}
+            className="h-8 px-2.5 sm:px-3 text-xs flex-1 sm:flex-none"
+          >
+            30d
+          </Button>
+          <Button
+            variant={dateRange === "90" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateRange("90")}
+            className="h-8 px-2.5 sm:px-3 text-xs flex-1 sm:flex-none"
+          >
+            90d
+          </Button>
+          <Button
+            variant={dateRange === "all" ? "default" : "outline"}
+            size="sm"
+            onClick={() => setDateRange("all")}
+            className="h-8 px-2.5 sm:px-3 text-xs flex-1 sm:flex-none"
+          >
+            All
+          </Button>
+        </div>
+      </div>
 
       <div className="relative">
         <svg
@@ -181,32 +294,61 @@ export default function HistoryPage() {
           </p>
         </div>
       ) : (
-        <div className="space-y-5 sm:space-y-6">
+        <div className="space-y-3 sm:space-y-4">
           {Object.entries(groupedEntries)
             .sort(([a], [b]) => new Date(b).getTime() - new Date(a).getTime())
             .map(([date, dayEntries]) => {
               const totals = getDayTotals(dayEntries);
+              const isExpanded = expandedDates.has(date);
+              const entryCount = dayEntries.length;
+              
               return (
-                <div key={date} className="space-y-2 sm:space-y-3">
-                  {/* Day Header */}
-                  <div className="flex items-center justify-between gap-2 pb-1">
-                    <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100">
-                      {formatDateHeader(date)}
-                    </h2>
+                <div key={date} className="border border-zinc-200 dark:border-zinc-800 rounded-lg overflow-hidden bg-white dark:bg-zinc-900/50">
+                  {/* Day Header - Clickable */}
+                  <button
+                    onClick={() => toggleDateExpanded(date)}
+                    className="w-full flex items-center justify-between gap-2 p-3 sm:p-4 hover:bg-zinc-50 dark:hover:bg-zinc-800/50 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div className="flex-shrink-0">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className={`w-4 h-4 text-zinc-400 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                        >
+                          <path d="m9 18 6-6-6-6" />
+                        </svg>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h2 className="text-sm sm:text-base font-semibold text-zinc-900 dark:text-zinc-100 text-left">
+                          {formatDateHeader(date)}
+                        </h2>
+                        <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5">
+                          {entryCount} meal{entryCount !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                    </div>
                     <DaySummary totals={totals} />
-                  </div>
+                  </button>
 
-                  {/* Entries */}
-                  <div className="space-y-2">
-                    {dayEntries.map((entry) => (
-                      <FoodEntryCard
-                        key={entry.id}
-                        entry={entry}
-                        onDelete={handleDelete}
-                        onClick={handleEntryClick}
-                      />
-                    ))}
-                  </div>
+                  {/* Entries - Collapsible */}
+                  {isExpanded && (
+                    <div className="px-3 sm:px-4 pb-3 sm:pb-4 space-y-2 border-t border-zinc-100 dark:border-zinc-800 pt-3">
+                      {dayEntries.map((entry) => (
+                        <FoodEntryCard
+                          key={entry.id}
+                          entry={entry}
+                          onDelete={handleDelete}
+                          onClick={handleEntryClick}
+                        />
+                      ))}
+                    </div>
+                  )}
                 </div>
               );
             })}
