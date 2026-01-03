@@ -60,6 +60,9 @@ export async function POST(request: NextRequest) {
         fiber: body.fiber || 0,
         description: body.description,
         imageUrl: body.imageUrl,
+        ingredientBreakdown: body.ingredientBreakdown
+          ? JSON.stringify(body.ingredientBreakdown)
+          : null,
         consumedAt: body.consumedAt ? new Date(body.consumedAt) : new Date(),
       })
       .returning();

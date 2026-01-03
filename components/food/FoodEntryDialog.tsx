@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import {
   Dialog,
@@ -15,6 +15,8 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { format } from "date-fns";
 import type { FoodEntry } from "@/lib/db/schema";
+import { IngredientBreakdownView } from "./IngredientBreakdownView";
+import type { IngredientBreakdown } from "@/lib/types/ingredients";
 
 interface FoodEntryDialogProps {
   entry: FoodEntry | null;
@@ -57,6 +59,8 @@ export function FoodEntryDialog({
     dailyCarbs?: number;
     dailyFat?: number;
   } | null>(null);
+  const [ingredientBreakdown, setIngredientBreakdown] =
+    useState<IngredientBreakdown | null>(null);
 
   // Reanalyze state
   const [reanalyzeExpanded, setReanalyzeExpanded] = useState(false);
@@ -98,6 +102,17 @@ export function FoodEntryDialog({
         fiber: entry.fiber ?? 0,
         description: entry.description ?? "",
       });
+      // Parse ingredientBreakdown from entry
+      if (entry.ingredientBreakdown) {
+        try {
+          const parsed = JSON.parse(entry.ingredientBreakdown);
+          setIngredientBreakdown(parsed);
+        } catch {
+          setIngredientBreakdown(null);
+        }
+      } else {
+        setIngredientBreakdown(null);
+      }
       setIsEditing(false);
       setReanalyzeExpanded(false);
       setReanalyzeContext("");
@@ -356,6 +371,11 @@ export function FoodEntryDialog({
         description: data.description ?? "",
       });
 
+      // Update ingredient breakdown if present
+      if (data.ingredientBreakdown) {
+        setIngredientBreakdown(data.ingredientBreakdown);
+      }
+
       // Switch to edit mode so user can review and save
       // Keep additionalImages so they're visible and will be saved
       setIsEditing(true);
@@ -370,6 +390,67 @@ export function FoodEntryDialog({
       setIsReanalyzing(false);
     }
   };
+
+  // Memoize callbacks to prevent infinite loops
+  const handleBreakdownChange = useCallback(
+    (breakdown: IngredientBreakdown | null) => {
+      setIngredientBreakdown(breakdown);
+      if (breakdown) {
+        // Update form data totals from breakdown
+        const totals = breakdown.ingredients.reduce(
+          (acc, ing) => ({
+            calories: acc.calories + ing.calories,
+            protein: acc.protein + ing.protein,
+            carbs: acc.carbs + ing.carbs,
+            fat: acc.fat + ing.fat,
+            fiber: acc.fiber + (ing.fiber || 0),
+          }),
+          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
+        );
+        setFormData((prev) => ({
+          ...prev,
+          calories: totals.calories,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+          fiber: totals.fiber,
+        }));
+      }
+    },
+    []
+  );
+
+  const handleTotalsChange = useCallback(
+    (totals: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    }) => {
+      setFormData((prev) => {
+        // Only update if values actually changed
+        if (
+          prev.calories !== totals.calories ||
+          prev.protein !== totals.protein ||
+          prev.carbs !== totals.carbs ||
+          prev.fat !== totals.fat ||
+          prev.fiber !== totals.fiber
+        ) {
+          return {
+            ...prev,
+            calories: totals.calories,
+            protein: totals.protein,
+            carbs: totals.carbs,
+            fat: totals.fat,
+            fiber: totals.fiber,
+          };
+        }
+        return prev;
+      });
+    },
+    []
+  );
 
   const handleSave = async () => {
     if (!entry) return;
@@ -392,6 +473,7 @@ export function FoodEntryDialog({
         body: JSON.stringify({
           ...formData,
           imageUrl: imageUrlToSave,
+          ingredientBreakdown: ingredientBreakdown || undefined,
         }),
       });
 
@@ -636,6 +718,18 @@ export function FoodEntryDialog({
                   </p>
                 </div>
               )}
+
+            {/* Ingredient Breakdown - View Mode */}
+            {ingredientBreakdown && (
+              <IngredientBreakdownView
+                breakdown={ingredientBreakdown}
+                onBreakdownChange={setIngredientBreakdown}
+                onTotalsChange={() => {
+                  // In view mode, totals are read-only
+                }}
+                readOnly={true}
+              />
+            )}
 
             {/* Reanalyze with AI - only show if entry has image */}
             {parseImageUrl(entry.imageUrl).length > 0 && (
@@ -1098,6 +1192,16 @@ export function FoodEntryDialog({
                 className="bg-zinc-50 dark:bg-zinc-800 border-zinc-300 dark:border-zinc-700"
               />
             </div>
+
+            {/* Ingredient Breakdown - Edit Mode */}
+            {ingredientBreakdown && (
+              <IngredientBreakdownView
+                breakdown={ingredientBreakdown}
+                onBreakdownChange={handleBreakdownChange}
+                onTotalsChange={handleTotalsChange}
+                readOnly={false}
+              />
+            )}
           </div>
         )}
 

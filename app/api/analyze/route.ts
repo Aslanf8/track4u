@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const { image, images, context } = await request.json();
+    const { image, images, context, includeBreakdown = true } = await request.json();
 
     // Support both single image (backward compatibility) and images array
     let imageArray: string[] = [];
@@ -46,9 +46,9 @@ export async function POST(request: NextRequest) {
     // Route to correct provider
     if (provider === "google") {
       const modelId = user?.preferredGeminiModel || "gemini-2.5-flash";
-      result = await analyzeFoodImageGemini(imageArray, session.user.id, context, modelId);
+      result = await analyzeFoodImageGemini(imageArray, session.user.id, context, modelId, includeBreakdown);
     } else {
-      result = await analyzeFoodImage(imageArray, session.user.id, context);
+      result = await analyzeFoodImage(imageArray, session.user.id, context, includeBreakdown);
     }
 
     return NextResponse.json(result);

@@ -20,6 +20,7 @@ export function GlobalScanner() {
     fiber: number;
     description: string;
     imageUrl?: string;
+    ingredientBreakdown?: unknown;
   }) => {
     const response = await fetch("/api/food", {
       method: "POST",

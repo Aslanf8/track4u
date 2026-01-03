@@ -53,19 +53,38 @@ export async function PATCH(
   try {
     const body = await request.json();
 
+    const updateData: {
+      name?: string;
+      calories?: number;
+      protein?: number;
+      carbs?: number;
+      fat?: number;
+      fiber?: number;
+      description?: string;
+      imageUrl?: string | null;
+      ingredientBreakdown?: string | null;
+      consumedAt?: Date;
+    } = {};
+
+    if (body.name !== undefined) updateData.name = body.name;
+    if (body.calories !== undefined) updateData.calories = body.calories;
+    if (body.protein !== undefined) updateData.protein = body.protein;
+    if (body.carbs !== undefined) updateData.carbs = body.carbs;
+    if (body.fat !== undefined) updateData.fat = body.fat;
+    if (body.fiber !== undefined) updateData.fiber = body.fiber;
+    if (body.description !== undefined) updateData.description = body.description;
+    if (body.imageUrl !== undefined) updateData.imageUrl = body.imageUrl;
+    if (body.ingredientBreakdown !== undefined) {
+      updateData.ingredientBreakdown = body.ingredientBreakdown
+        ? JSON.stringify(body.ingredientBreakdown)
+        : null;
+    }
+    if (body.consumedAt !== undefined)
+      updateData.consumedAt = body.consumedAt ? new Date(body.consumedAt) : undefined;
+
     const updated = await db
       .update(foodEntries)
-      .set({
-        name: body.name,
-        calories: body.calories,
-        protein: body.protein,
-        carbs: body.carbs,
-        fat: body.fat,
-        fiber: body.fiber,
-        description: body.description,
-        imageUrl: body.imageUrl !== undefined ? body.imageUrl : undefined,
-        consumedAt: body.consumedAt ? new Date(body.consumedAt) : undefined,
-      })
+      .set(updateData)
       .where(
         and(eq(foodEntries.id, id), eq(foodEntries.userId, session.user.id))
       )

@@ -14,3 +14,6 @@ ALTER TABLE users ADD COLUMN preferred_gemini_model TEXT DEFAULT 'gemini-2.5-fla
 -- Note: The user_goals table already has all necessary columns (age, sex, weight, height, activityLevel)
 -- No changes needed for user_goals table
 
+-- Add ingredient breakdown field for transparent ingredient reasoning
+ALTER TABLE food_entries ADD COLUMN ingredient_breakdown TEXT;
+

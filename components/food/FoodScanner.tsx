@@ -18,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { IngredientBreakdownView } from "./IngredientBreakdownView";
+import type { IngredientBreakdown } from "@/lib/types/ingredients";
 
 interface FoodAnalysisResult {
   name: string;
@@ -28,6 +30,7 @@ interface FoodAnalysisResult {
   fiber: number;
   description: string;
   confidence: "low" | "medium" | "high";
+  ingredientBreakdown?: IngredientBreakdown;
 }
 
 interface FoodScannerProps {
@@ -47,6 +50,9 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
   const [editedResult, setEditedResult] = useState<FoodAnalysisResult | null>(
     null
   );
+  const [ingredientBreakdown, setIngredientBreakdown] =
+    useState<IngredientBreakdown | null>(null);
+  const [includeBreakdown, setIncludeBreakdown] = useState<boolean>(true); // Default to true for better UX
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [context, setContext] = useState<string>("");
@@ -146,6 +152,8 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     setImageData([]);
     setResult(null);
     setEditedResult(null);
+    setIngredientBreakdown(null);
+    setIncludeBreakdown(true); // Reset to default
     setError(null);
     setIsSaving(false);
     setContext("");
@@ -312,7 +320,11 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       const response = await fetch("/api/analyze", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ images, context: userContext || undefined }),
+        body: JSON.stringify({
+          images,
+          context: userContext || undefined,
+          includeBreakdown: includeBreakdown,
+        }),
       });
 
       const data = await response.json();
@@ -344,6 +356,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
       setResult(data);
       setEditedResult(data);
+      setIngredientBreakdown(data.ingredientBreakdown || null);
       setStep("review");
       // Reset refine state when new analysis completes
       setRefineExpanded(false);
@@ -372,6 +385,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
         body: JSON.stringify({
           images: imageData,
           context: refineContext.trim() || undefined,
+          includeBreakdown: includeBreakdown,
         }),
       });
 
@@ -383,6 +397,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
 
       setResult(data);
       setEditedResult(data);
+      setIngredientBreakdown(data.ingredientBreakdown || null);
       setRefineExpanded(false);
       setRefineContext("");
     } catch (err) {
@@ -411,6 +426,7 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
       await onSave({
         ...editedResult,
         imageUrl: imageUrlToSave,
+        ingredientBreakdown: ingredientBreakdown || undefined,
       });
       handleClose();
     } catch (err) {
@@ -429,9 +445,69 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
     setEditedResult({ ...editedResult, [field]: value });
   };
 
+  // Memoize callbacks to prevent infinite loops
+  const handleBreakdownChange = useCallback(
+    (breakdown: IngredientBreakdown | null) => {
+      setIngredientBreakdown(breakdown);
+      if (breakdown && editedResult) {
+        // Update totals from breakdown
+        const totals = breakdown.ingredients.reduce(
+          (acc, ing) => ({
+            calories: acc.calories + ing.calories,
+            protein: acc.protein + ing.protein,
+            carbs: acc.carbs + ing.carbs,
+            fat: acc.fat + ing.fat,
+            fiber: acc.fiber + (ing.fiber || 0),
+          }),
+          { calories: 0, protein: 0, carbs: 0, fat: 0, fiber: 0 }
+        );
+        setEditedResult({
+          ...editedResult,
+          calories: totals.calories,
+          protein: totals.protein,
+          carbs: totals.carbs,
+          fat: totals.fat,
+          fiber: totals.fiber,
+        });
+      }
+    },
+    [editedResult]
+  );
+
+  const handleTotalsChange = useCallback(
+    (totals: {
+      calories: number;
+      protein: number;
+      carbs: number;
+      fat: number;
+      fiber: number;
+    }) => {
+      if (editedResult) {
+        // Only update if values actually changed
+        if (
+          editedResult.calories !== totals.calories ||
+          editedResult.protein !== totals.protein ||
+          editedResult.carbs !== totals.carbs ||
+          editedResult.fat !== totals.fat ||
+          editedResult.fiber !== totals.fiber
+        ) {
+          setEditedResult({
+            ...editedResult,
+            calories: totals.calories,
+            protein: totals.protein,
+            carbs: totals.carbs,
+            fat: totals.fat,
+            fiber: totals.fiber,
+          });
+        }
+      }
+    },
+    [editedResult]
+  );
+
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-2xl lg:max-w-4xl xl:max-w-5xl bg-white dark:bg-zinc-900 border-zinc-200 dark:border-zinc-800 max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-zinc-900 dark:text-zinc-100">
             {step === "capture" && "Scan Your Food"}
@@ -744,6 +820,35 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                 Add Another Image ({imageData.length}/{MAX_IMAGES})
               </Button>
             )}
+
+            {/* Breakdown Toggle */}
+            <Card className="p-4 bg-gradient-to-br from-amber-50/50 to-orange-50/30 dark:from-amber-950/20 dark:to-orange-950/10 border-amber-200 dark:border-amber-800/50">
+              <div className="flex items-start gap-3">
+                <input
+                  type="checkbox"
+                  id="includeBreakdown"
+                  checked={includeBreakdown}
+                  onChange={(e) => setIncludeBreakdown(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-zinc-300 dark:border-zinc-600 text-amber-600 focus:ring-amber-500 focus:ring-2"
+                />
+                <div className="flex-1">
+                  <label
+                    htmlFor="includeBreakdown"
+                    className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 cursor-pointer block"
+                  >
+                    Include Detailed Ingredient Breakdown
+                  </label>
+                  <p className="text-xs text-zinc-600 dark:text-zinc-400 mt-1 leading-relaxed">
+                    Get a complete breakdown of all ingredients with individual
+                    macros.
+                    <span className="font-medium text-amber-700 dark:text-amber-400">
+                      {" "}
+                      More accurate but uses more API credits.
+                    </span>
+                  </p>
+                </div>
+              </div>
+            </Card>
 
             {/* Context input - subtle expandable */}
             <div className="space-y-2">
@@ -1127,6 +1232,15 @@ export function FoodScanner({ open, onOpenChange, onSave }: FoodScannerProps) {
                     </span>
                   </div>
                 </Card>
+              )}
+
+              {/* Ingredient Breakdown */}
+              {ingredientBreakdown && (
+                <IngredientBreakdownView
+                  breakdown={ingredientBreakdown}
+                  onBreakdownChange={handleBreakdownChange}
+                  onTotalsChange={handleTotalsChange}
+                />
               )}
 
               {/* Refine with AI */}

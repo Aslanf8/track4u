@@ -54,6 +54,7 @@ export const foodEntries = sqliteTable("food_entries", {
   fat: real("fat").notNull(),
   fiber: real("fiber").default(0),
   description: text("description"),
+  ingredientBreakdown: text("ingredient_breakdown"), // JSON string of IngredientBreakdown
   consumedAt: integer("consumed_at", { mode: "timestamp" })
     .notNull()
     .$defaultFn(() => new Date()),
